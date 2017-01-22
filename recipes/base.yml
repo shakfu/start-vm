@@ -1,0 +1,84 @@
+
+name: base
+platform: ubuntu:16.04
+sections:
+    - name: core
+      type: debian_packages
+      install:
+        - build-essential
+        - ncdu
+        - htop
+        - vim
+        - exuberant-ctags
+        - git
+        - tig
+        - ranger
+        - bmon
+        - pv
+        - rpl
+        - unzip
+        - p7zip-full
+        - libpq-dev
+        - open-vm-tools
+        - open-vm-tools-desktop
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+
+    - name: py_modules
+      type: python_packages
+      install:
+          - wheel
+          - virtualenv
+          - ipython
+          - cython
+          - psycopg2
+          - pgcli
+          - grin
+          - isort
+          - pylint
+          - radon
+          - autopep8
+          - glances
+
+    - name: gui
+      type: debian_packages
+      install:
+          - xorg
+          - fonts-dejavu
+          - gnome-icon-theme
+          - i3-wm
+          - roxterm
+          - lxappearance
+          - gtk2-engines
+          - conky
+          - scite
+          - gtkorphan
+          - fslint
+          - bleachbit
+      cleanup:
+          - xserver-xorg-input-all
+          - xserver-xorg-input-synaptics
+          - xserver-xorg-input-wacom
+          - xserver-xorg-video-all
+          - xserver-xorg-video-ati
+          - xserver-xorg-video-cirrus
+          - xserver-xorg-video-geode
+          - xserver-xorg-video-mach64
+          - xserver-xorg-video-mga
+          - xserver-xorg-video-neomagic
+          - xserver-xorg-video-nouveau
+          - xserver-xorg-video-openchrome
+          - xserver-xorg-video-r128
+          - xserver-xorg-video-radeon
+          - xserver-xorg-video-savage
+          - xserver-xorg-video-siliconmotion
+          - xserver-xorg-video-sisusb
+          - xserver-xorg-video-tdfx
+          - xserver-xorg-video-trident
+      config:
+          - conky

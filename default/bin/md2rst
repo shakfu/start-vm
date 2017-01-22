@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+import os, glob
+
+cmd = 'pandoc --normalize --wrap=none -f markdown -o {}.rst {}.md'
+
+for f in glob.glob('*.md'):
+    name = os.path.splitext(f)[0]
+    os.system(cmd.format(name, name))
+    #pandoc -f markdown -t rst -o $(basename .md $file).rst $file
+

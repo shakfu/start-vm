@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+#
+# My own sane implementation of cut(1) - by default it
+# parses columns on ANY whitespace instead of being picky.
+#
+# 2006 David A. Riggs <david.a.riggs@gmail.com>
+#
+
+import sys
+
+
+'''parse a slice from a string'''
+def parse_slice(st):
+    # st can be 5, 5-, -5, 5-7
+    if st.endswith('-'):
+        sl = slice(int(st[:-1])-1, None)
+    elif st.startswith('-'):
+        sl = slice(None, int(st[1:]))
+    elif st.count('-'):
+        start, stop = st.split('-')
+        sl = slice(int(start)-1, int(stop))
+    else:
+        sl = slice(int(st)-1, int(st))
+    return sl
+
+
+'''read from stream ins, write to outs'''
+def pycut(delim, field, outdelim, ins, outs):
+    s = parse_slice(field)
+    for line in ins:
+        toks = line.strip().split(delim)[s]
+        print >> outs, outdelim.join(toks)
+
+
+def main():
+    from optparse import OptionParser
+
+    desc = 'Print selected parts of lines from stdin to stdout. More sane than `cut`.'
+    parser = OptionParser(version='%prog 0.1', description=desc)
+    parser.add_option('-d', '--delim', dest='delim',
+                      help='Use specified string instead of whitespace for delimiter')
+    parser.add_option('-f', '--field', dest='field',
+                      help='Output only these fields, eg. 3, 3-, -3, 3-5')
+    parser.add_option('-o', '--output-delimiter', dest='outdelim',
+                      help='Use OUTDELIM as output delimiter instead of space')
+    parser.set_defaults(outdelim=' ')
+    
+    opts, args = parser.parse_args()
+
+    pycut(opts.delim, opts.field, opts.outdelim, sys.stdin, sys.stdout)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import os, sys
+
+
+
+def save(arg, to_dir='~/images'):
+    '''saves a docker image to an archive
+    '''
+
+    if ':' in arg:
+        name, tag = arg.split(':')
+    else:
+        name = arg
+        tag = 'latest'
+
+
+    newname = name.replace('/', '.')
+
+    cmd = 'docker save {name}:{tag} | pv | gzip -c > {to}/{newname}.{tag}.tgz'.format(
+        name=name, newname=newname, tag=tag, to=to_dir)
+
+    print(cmd)
+
+    os.system(cmd)
+
+
+def load(archive):
+    '''loads a docker image from an archive
+    '''
+    cmd = 'gunzip -c {archive} | pv | docker load'.format(archive=archive)
+    print(cmd)
+    os.system(cmd)
+
+
+if __name__ == '__main__':
+    args = sys.argv
+    if args[1] in ['load', '-l']:
+        load(args[2])
+    if args[1] in ['save', '-s']:
+        save(args[2])
+
+
+

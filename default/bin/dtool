@@ -1,0 +1,364 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import logging
+import argparse
+from pathlib import Path
+
+import six
+
+# ----------------------------------------------------------
+# LOGGING
+# ----------------------------------------------------------
+DEBUG=True
+
+if DEBUG:
+    LOG_LEVEL = logging.DEBUG
+else:
+    LOG_LEVEL = logging.INFO
+
+LOG_FORMAT = '%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s'
+logging.basicConfig(level=LOG_LEVEL,
+                    format=LOG_FORMAT,
+                    stream=sys.stdout)
+
+class Logger(object):
+    """A logger class with color that can handle console and gui cases.
+    """
+    COLORS_LOG = {
+        'debug':    'green',
+        'info':     'cyan',
+        'warn':     'yellow',
+        'error':    'red',
+        'critical': 'red',
+    }
+
+    ATTRIBUTES = dict(bold=1, underline=4)
+
+    COLORS_TXT = dict(
+        red=31,
+        green=32,
+        yellow=33,
+        blue=34,
+        magenta=35,
+        cyan=36,
+        white=37
+    )
+
+    RESET = '\033[0m'
+
+    def __init__(self, name, is_colored=True, options=None):
+        self.name = name
+        self.log = logging.getLogger(name)
+        self.is_colored = is_colored
+        self.options = options
+
+    def colored(self, text, color=None, attrs=None):
+        """Colorize text.
+
+        Available text colors:
+            red, green, yellow, blue, magenta, cyan, white.
+
+        Available attributes:
+            bold, dark, underline, blink, reverse, concealed.
+
+        Example:
+            colored('Hello, World!', 'red', ['blue', 'blink'])
+            colored('Hello, World!', 'green')
+
+        """
+        if os.getenv('ANSI_COLORS_DISABLED') is None:
+            fmt_str = '\033[%dm%s'
+            if color is not None:
+                text = fmt_str % (self.COLORS_TXT[color], text)
+
+            if attrs is not None:
+                for attr in attrs:
+                    text = fmt_str % (self.ATTRIBUTES[attr], text)
+
+            text += self.RESET
+        return text
+
+    @property
+    def level(self):
+        """Get logging level.
+        """
+        return logging.getLevelName(self.log.level)
+
+    @level.setter
+    def level(self, value):
+        """Set logging level.
+        """
+        log_level = {
+            'debug': logging.DEBUG,        # 10
+            'info': logging.INFO,          # 20
+            'warn': logging.WARN,          # 30
+            'error': logging.ERROR,        # 40
+            'critical': logging.CRITICAL,  # 50
+        }
+        if isinstance(value, str):
+            assert value in log_level, 'level not implemented'
+            self.log.parent.setLevel(log_level[value])
+        elif isinstance(value, int):
+            self.log.parent.setLevel(value)
+        else:
+            raise NotImplementedError
+
+    def _dispatch(self, category, msg, *args, **kwargs):
+        """Helper function for coloring log msg by type of msg.
+        """
+        msg = msg.format(*args, **kwargs)
+        if self.is_colored:
+            getattr(self.log, category)(
+                self.colored(msg,
+                    self.COLORS_LOG[category],
+                    attrs=['bold']
+                )
+            )
+        else:
+            getattr(self.log, category)
+
+    def exception(self, msg, *args, **kwargs):
+        """Log info msg.
+        """
+        self.log.exception(msg, *args, **kwargs)
+        raise
+
+    def info(self, msg, *args, **kwargs):
+        """Log info msg.
+        """
+        self._dispatch('info', msg, *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        """Log debug msg.
+        """
+        self._dispatch('debug', msg, *args, **kwargs)
+
+    def warn(self, msg, *args, **kwargs):
+        """Log warn msg.
+        """
+        self._dispatch('warn', msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        """Log error msg.
+        """
+        self._dispatch('error', msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        """Log critical msg.
+        """
+        self._dispatch('critical', msg, *args, **kwargs)
+
+
+# ----------------------------------------------------------
+# Commandline Functionality
+# ----------------------------------------------------------
+
+# option decorator
+def option(*args, **kwds):
+    """Convenience decorator for command line options.
+    """
+    def _decorator(func):
+        _option = (args, kwds)
+        if hasattr(func, 'options'):
+            func.options.append(_option)
+        else:
+            func.options = [_option]
+        return func
+    return _decorator
+
+# semantic diff for required args
+arg = option
+
+# combines option decorators
+def option_group(*options):
+    def _decorator(func):
+        for option in options:
+            func = option(func)
+        return func
+    return _decorator
+
+
+class MetaCommander(type):
+    """Metaclass to drive argparse command line functionality.
+    """
+
+    def __new__(mcs, classname, bases, classdict):
+        """creates an argparse friend class.
+        """
+        subcmds = {}
+        for name, func in list(classdict.items()):
+            if name.startswith('do_'):
+                name = name[3:]
+                subcmd = {
+                    'name': name,
+                    'func': func,
+                    'options': []
+                }
+                if hasattr(func, 'options'):
+                    subcmd['options'] = func.options
+                subcmds[name] = subcmd
+        classdict['_argparse_subcmds'] = subcmds
+        return type.__new__(mcs, classname, bases, classdict)
+
+@six.add_metaclass(MetaCommander)
+class Commander(object):
+    """Command line API to XLSchema.
+    """
+    name = 'app'
+    description = 'a description'
+    version = '0.0'
+    epilog = ''
+    default_args = []
+
+    def cmdline(self):
+        """Primary command line main method.
+        """
+        parser = argparse.ArgumentParser(
+            # prog = self.name,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=self.__doc__,
+            epilog=self.epilog,
+        )
+
+        parser.add_argument('-v', '--version', action='version',
+                            version='%(prog)s ' + self.version)
+
+        subparsers = parser.add_subparsers(
+            title='subcommands',
+            description='valid subcommands',
+            help='additional help',
+        )
+
+        # pylint: disable=no-member
+        for name in sorted(self._argparse_subcmds.keys()):
+            # pylint: disable=no-member
+            subcmd = self._argparse_subcmds[name]
+            subparser = subparsers.add_parser(subcmd['name'],
+                                              help=subcmd['func'].__doc__)
+            for args, kwds in subcmd['options']:
+                subparser.add_argument(*args, **kwds)
+            subparser.set_defaults(func=subcmd['func'])
+
+        if len(sys.argv) <= 1:
+            options = parser.parse_args(self.default_args)
+        else:
+            options = parser.parse_args()
+        options.func(self, options)
+
+# ----------------------------------------------------------
+# CONTAINER BASE CLASS
+# ----------------------------------------------------------
+
+
+class ContainerTool:
+    """Abstract base class for container tools
+    """
+
+    image = None
+
+    def __init__(self, workdir='/work', outdir='.'):
+        self.workdir = Path(workdir)
+        self.outdir = self.workdir.joinpath(outdir)
+        self.cwd = os.getcwd()
+        self.base = 'docker run -it --rm -v {}:{} {}'.format(
+            self.cwd, self.workdir, self.image)
+        self.log = Logger(self.__class__.__name__)
+
+    def cmd(self, shellcmd, *args, **kwds):
+        shellcmd = '{} {}'.format(self.base, shellcmd).format(*args, **kwds)
+        self.log.info(shellcmd)
+        os.system(shellcmd)
+
+    def metacmd(self, cmd, entrypoint, *args, **kwds):
+        cmd_x = cmd.format(*args, **kwds)
+        self.cmd(entrypoint, cmd_x)
+
+    def rcmd(self, cmd, *args, **kwds):
+        self.metacmd(cmd, 'Rscript -e "{}"', *args, **kwds)
+
+    def pycmd(self, cmd, *args, **kwds):
+        self.metacmd(cmd, 'python -c "{}"', *args, **kwds)
+
+
+class RmarkdownBuilder(ContainerTool):
+    """Builds rmarkdown documents
+    """
+    image = 'img-rbase-pandoc-latex'
+
+    def render(self, paths, format='rmdshower::shower_presentation'):
+        for path in paths:
+            target = str(self.workdir.joinpath(path))
+            self.log.debug('target: {}', target)
+            self.rcmd("rmarkdown::render('{target}', output_format='{format}', output_dir='{outdir}')".format(
+                target=target, format=format, outdir=self.outdir))
+
+class StackGraphBuilder(ContainerTool):
+    """Builds graphical visualization of stack.yml
+    """
+    image = 'img-toolkit'
+
+    def render(self, paths):
+        for path in paths:
+            target = str(self.workdir.joinpath(path))
+            self.log.debug('target: {}', target)
+            self.cmd("/root/bin/gen_graph.sh {}".format(target))
+
+#docker run -it --rm -v `pwd`/stacks:/stacks img-toolkit /root/bin/gen_graph.sh $1
+
+class PlantUmlBuilder(ContainerTool):
+    """Builds graphical visualization from plantuml
+    """
+    image = 'img-toolkit'
+
+    def render(self, paths):
+        for path in paths:
+            target = str(self.workdir.joinpath(path))
+            self.log.debug('target: {}', target)
+            self.cmd("java -jar /app/plantuml.jar {}".format(target))
+
+
+common_options = option_group(
+    option('path', nargs='+', help='path to pass to tool'),
+    option('--workdir', '-w', type=str, help='set work directory', default='/work'),
+    option('--outdir',  '-o', type=str, help='set output directory', default='.')
+)
+
+
+class Application(Commander):
+
+    """dtool: general command-line toolkit
+    """
+    name = 'dtool'
+    version = '0.1'
+    default_args = ['--help']
+
+    def __init__(self):
+        self.log = Logger(self.__class__.__name__)
+
+
+    @option('--format',  '-f', type=str, help='set format',
+                               default='rmdshower::shower_presentation')
+    @common_options
+    def do_rmarkdown(self, options):
+        "render rmarkdown documents"
+        builder = RmarkdownBuilder(options.workdir, options.outdir)
+        builder.render(options.path, format=options.format)
+
+    @common_options
+    def do_plantuml(self, options):
+        "render plantuml graphs"
+        builder = StackGraphBuilder(options.workdir, options.outdir)
+        builder.render(options.path)
+
+    @common_options
+    def do_graph(self, options):
+        "render plantuml graphs"
+        builder = PlantUmlBuilder(options.workdir, options.outdir)
+        builder.render(options.path)
+
+
+if __name__ == '__main__':
+    APP = Application()
+    APP.cmdline()

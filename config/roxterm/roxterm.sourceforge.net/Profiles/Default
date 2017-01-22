@@ -1,0 +1,6 @@
+[roxterm profile]
+hide_menubar=1
+always_show_tabs=0
+show_add_tab_btn=0
+font=Monospace 8
+scrollbar_pos=0

@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+import os
+
+cmd = os.system
+
+free = lambda x: cmd("echo %s | sudo tee /proc/sys/vm/drop_caches"  % x)
+
+for i in range(1,4):
+    cmd('sync')
+    free(i)
+

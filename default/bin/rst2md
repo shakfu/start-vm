@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import os, glob
+
+cmd = 'pandoc --normalize --wrap=none -f rst -o {}.md {}.rst'
+
+for f in glob.glob('*.rst'):
+    name = os.path.splitext(f)[0]
+    os.system(cmd.format(name, name))
+
