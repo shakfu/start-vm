@@ -51,7 +51,7 @@ sections:
           - xorg
           - fonts-dejavu
           - gnome-icon-theme
-          - i3-wm
+          - i3
           - roxterm
           - lxappearance
           - gtk2-engines
