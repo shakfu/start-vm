@@ -12,6 +12,7 @@ features:
 """
 
 import os
+import stat
 import sys
 import traceback
 import logging
@@ -204,12 +205,13 @@ class Operator:
         with path.open('w') as f:
             f.write(data)
         if is_executable:
-            self.cmd('chmod +x {}', path)
+            st = path.stat()
+            path.chmod(st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     def cmd(self, shell_cmd, *args, **kwds):
         shell_cmd = shell_cmd.format(*args, **kwds)
         self.log.info(shell_cmd)
-        if not self.options.test_run:
+        if self.options.run:
             os.system(shell_cmd)
 
     def run(self):
@@ -232,8 +234,9 @@ class BashBuilder(Builder):
     """Builds a bash file for package installation
     """
     suffix = '.sh'
-    template = dedent('''#!/usr/bin/env bash
-    
+    template = dedent('''
+    #!/usr/bin/env bash
+
     COLOR_BOLD_YELLOW="\033[1;33m"
     COLOR_BOLD_BLUE="\033[1;34m"
     COLOR_BOLD_MAGENTA="\033[1;35m"
@@ -285,6 +288,8 @@ class BashBuilder(Builder):
     {% endfor %}
 
     {% for section in sections %}
+
+    ###########################################################################
     section ">>> {{section.name}}"
 
     {% if conditional %}

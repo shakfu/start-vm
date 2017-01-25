@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 COLOR_BOLD_YELLOW="[1;33m"
 COLOR_BOLD_BLUE="[1;34m"
 COLOR_BOLD_MAGENTA="[1;35m"
@@ -47,6 +48,7 @@ install_config gtk-3.0
 install_config i3
 install_config i3status
 install_config roxterm.sourceforge.net
+###########################################################################
 section ">>> core"
 echo "pre-install scripts"
 sudo apt-get update && sudo apt-get dist-upgrade -y
@@ -69,6 +71,9 @@ sudo apt-get update && sudo apt-get install -y \
 sudo apt-get purge -y \
     snapd \
  && echo "core packages purged"
+echo "post-install scripts"
+mkdir -p ~/.host-shared
+###########################################################################
 section ">>> database"
 echo "pre-install scripts"
 declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
@@ -89,12 +94,14 @@ sudo apt-get update && sudo apt-get install -y \
 echo "post-install scripts"
 sudo -u postgres createuser -s sa
 sudo -u postgres createdb sa
+###########################################################################
 section ">>> python"
 sudo apt-get update && sudo apt-get install -y \
     python3-dev \
     python3-setuptools \
     python3-pip \
  && echo "python debian packages installed"
+###########################################################################
 section ">>> py_modules"
 sudo -H pip3 install \
     wheel \
@@ -110,6 +117,7 @@ sudo -H pip3 install \
     autopep8 \
     glances \
  && echo "py_modules python packages installed"
+###########################################################################
 section ">>> gui"
 sudo apt-get update && sudo apt-get install -y \
     xorg \
