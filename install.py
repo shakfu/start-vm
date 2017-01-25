@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-installer: an installation support tool
+installer: an installation automation tool
 
 features:
 
@@ -238,7 +238,7 @@ class BashBuilder(Builder):
 
     function recipe {
         echo
-        echo -e COLOR_BOLD_MAGENTA$1 $COLOR_RESET
+        echo -e $COLOR_BOLD_MAGENTA$1 $COLOR_RESET
         echo "=========================================================="
     }
 
