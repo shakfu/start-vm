@@ -178,6 +178,8 @@ class Operator:
         self.options = options
         self.recipe = self._load_yml()
         self.log = Logger(self.__class__.__name__)
+        self.recipe['defaults'] = self._listdir('default')
+        self.recipe['configs'] = self._listdir('config')
 
     def _load_yml(self):
         recipe = None
@@ -186,17 +188,23 @@ class Operator:
             recipe = yaml.load(content)
         return recipe
 
+    def _listdir(self, directory):
+        entries = os.listdir(directory)
+        return entries
+
     @property
     def target(self):
         return self.prefix + '_' + self.name + self.suffix
 
-    def write_file(self, data, strip_empty_lines=True):
+    def write_file(self, data, strip_empty_lines=True, is_executable=True):
         if strip_empty_lines:
             data = '\n'.join([line for line in data.split('\n') if line.strip()])
         path = self.setup.joinpath(self.target)
         self.log.info('writing {}', path)
         with path.open('w') as f:
             f.write(data)
+        if is_executable:
+            self.cmd('chmod +x {}', path)
 
     def cmd(self, shell_cmd, *args, **kwds):
         shell_cmd = shell_cmd.format(*args, **kwds)
@@ -224,7 +232,8 @@ class BashBuilder(Builder):
     """Builds a bash file for package installation
     """
     suffix = '.sh'
-    template = dedent('''
+    template = dedent('''#!/usr/bin/env bash
+    
     COLOR_BOLD_YELLOW="\033[1;33m"
     COLOR_BOLD_BLUE="\033[1;34m"
     COLOR_BOLD_MAGENTA="\033[1;35m"
@@ -263,25 +272,17 @@ class BashBuilder(Builder):
     echo
 
     section ">>> installing default dotfiles"
-    install_default .fonts
-    install_default .bashrc
-    install_default .ghci
-    install_default .SciteUser.properties
-    install_default .vimrc
-    install_default .xinitrc
-    install_default bin
-    install_default src
+    {% for entry in defaults %}
+    install_default {{entry}}
+    {% endfor %}
 
     section ">>> installing .config folders"
     if [ ! -d "$CONFIG_DST" ]; then
         mkdir -p $CONFIG_DST
     fi
-    install_config awesome
-    install_config i3
-    install_config i3_status
-    install_config conky
-    install_config roxterm
-    install_config gtk-3.0
+    {% for entry in configs %}
+    install_config {{entry}}
+    {% endfor %}
 
     {% for section in sections %}
     section ">>> {{section.name}}"
@@ -301,7 +302,7 @@ class BashBuilder(Builder):
     {% endif %}
 
     {% if section.type == "debian_packages" %}
-    sudo apt-get update && apt-get install -y \\
+    sudo apt-get update && sudo apt-get install -y \\
     {% for package in section.install %}
         {{package}} \\
     {% endfor %}

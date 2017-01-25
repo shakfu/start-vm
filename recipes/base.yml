@@ -12,7 +12,6 @@ sections:
         - htop
         - vim
         - exuberant-ctags
-        - git
         - tig
         - ranger
         - bmon
@@ -24,6 +23,8 @@ sections:
         - open-vm-tools-desktop
       purge:
         - snapd
+      post_install: |
+        mkdir -p ~/.host-shared
 
     - name: database
       type: debian_packages
@@ -43,10 +44,8 @@ sections:
         - postgresql-9.6-pgtap
         - pgtap
       post_install: |
-        sudo -u postgres bash
-        createuser -s sa
-        createdb sa
-        exit
+        sudo -u postgres createuser -s sa
+        sudo -u postgres createdb sa
 
     - name: python
       type: debian_packages
@@ -77,6 +76,7 @@ sections:
           - xorg
           - fonts-dejavu
           - gnome-icon-theme
+          - awesome
           - i3
           - roxterm
           - lxappearance

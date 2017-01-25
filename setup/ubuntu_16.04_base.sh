@@ -29,10 +29,10 @@ recipe "name: base"
 echo "platform: ubuntu:16.04"
 echo
 section ">>> installing default dotfiles"
-install_default .fonts
 install_default .bashrc
+install_default .fonts
 install_default .ghci
-install_default .SciteUser.properties
+install_default .SciTEUser.properties
 install_default .vimrc
 install_default .xinitrc
 install_default bin
@@ -42,21 +42,20 @@ if [ ! -d "$CONFIG_DST" ]; then
     mkdir -p $CONFIG_DST
 fi
 install_config awesome
-install_config i3
-install_config i3_status
 install_config conky
-install_config roxterm
 install_config gtk-3.0
+install_config i3
+install_config i3status
+install_config roxterm.sourceforge.net
 section ">>> core"
 echo "pre-install scripts"
 sudo apt-get update && sudo apt-get dist-upgrade -y
-sudo apt-get update && apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     build-essential \
     ncdu \
     htop \
     vim \
     exuberant-ctags \
-    git \
     tig \
     ranger \
     bmon \
@@ -76,7 +75,7 @@ declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
 echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt-get update && apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     libpq-dev \
     postgresql-client-9.6 \
     postgresql-9.6 \
@@ -88,12 +87,10 @@ sudo apt-get update && apt-get install -y \
     pgtap \
  && echo "database debian packages installed"
 echo "post-install scripts"
-sudo -u postgres bash
-createuser -s sa
-createdb sa
-exit
+sudo -u postgres createuser -s sa
+sudo -u postgres createdb sa
 section ">>> python"
-sudo apt-get update && apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     python3-dev \
     python3-setuptools \
     python3-pip \
@@ -114,10 +111,11 @@ sudo -H pip3 install \
     glances \
  && echo "py_modules python packages installed"
 section ">>> gui"
-sudo apt-get update && apt-get install -y \
+sudo apt-get update && sudo apt-get install -y \
     xorg \
     fonts-dejavu \
     gnome-icon-theme \
+    awesome \
     i3 \
     roxterm \
     lxappearance \
