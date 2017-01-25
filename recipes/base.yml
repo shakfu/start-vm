@@ -4,6 +4,8 @@ platform: ubuntu:16.04
 sections:
     - name: core
       type: debian_packages
+      pre_install: |
+        sudo apt-get update && sudo apt-get dist-upgrade -y
       install:
         - build-essential
         - ncdu
@@ -18,9 +20,33 @@ sections:
         - rpl
         - unzip
         - p7zip-full
-        - libpq-dev
         - open-vm-tools
         - open-vm-tools-desktop
+      purge:
+        - snapd
+
+    - name: database
+      type: debian_packages
+      pre_install: |
+        declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+        echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
+        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+        sudo apt-get update
+      install:
+        - libpq-dev
+        - postgresql-client-9.6
+        - postgresql-9.6
+        - postgresql-contrib-9.6
+        - postgresql-plpython3-9.6
+        - postgresql-9.6-pllua
+        - luajit
+        - postgresql-9.6-pgtap
+        - pgtap
+      post_install: |
+        sudo -u postgres bash
+        createuser -s sa
+        createdb sa
+        exit
 
     - name: python
       type: debian_packages
@@ -60,25 +86,3 @@ sections:
           - gtkorphan
           - fslint
           - bleachbit
-      cleanup:
-          - xserver-xorg-input-all
-          - xserver-xorg-input-synaptics
-          - xserver-xorg-input-wacom
-          - xserver-xorg-video-all
-          - xserver-xorg-video-ati
-          - xserver-xorg-video-cirrus
-          - xserver-xorg-video-geode
-          - xserver-xorg-video-mach64
-          - xserver-xorg-video-mga
-          - xserver-xorg-video-neomagic
-          - xserver-xorg-video-nouveau
-          - xserver-xorg-video-openchrome
-          - xserver-xorg-video-r128
-          - xserver-xorg-video-radeon
-          - xserver-xorg-video-savage
-          - xserver-xorg-video-siliconmotion
-          - xserver-xorg-video-sisusb
-          - xserver-xorg-video-tdfx
-          - xserver-xorg-video-trident
-      config:
-          - conky

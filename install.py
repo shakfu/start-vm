@@ -163,11 +163,6 @@ class Logger(object):
         self._dispatch('critical', msg, *args, **kwargs)
 
 
-# custom filters
-
-
-
-
 
 class Operator:
     """Base class with standard interface and yaml loading to subclasses
@@ -191,9 +186,14 @@ class Operator:
             recipe = yaml.load(content)
         return recipe
 
-    def write_file(self, data):
-        target = self.prefix + '_' + self.name + self.suffix
-        path = self.setup.joinpath(target)
+    @property
+    def target(self):
+        return self.prefix + '_' + self.name + self.suffix
+
+    def write_file(self, data, strip_empty_lines=True):
+        if strip_empty_lines:
+            data = '\n'.join([line for line in data.split('\n') if line.strip()])
+        path = self.setup.joinpath(self.target)
         self.log.info('writing {}', path)
         with path.open('w') as f:
             f.write(data)
@@ -204,58 +204,18 @@ class Operator:
         if not self.options.test_run:
             os.system(shell_cmd)
 
-    def do(self):
-        """override me
-        """
-
-
-class PackageInstaller(Operator):
-    """Install packages for multiple platforms
-
-    """
-
-    def do(self):
-        for section in self.recipe['sections']:
-            if 'install' in section:
-                method = '_install_{}'.format(section['type'])
-                try:
-                    getattr(self, method)(section)
-                except AttributeError:
-                    traceback.print_exc(file=sys.stdout)
-
-    def _install_debian_packages(self, section):
-        installables = ' '.join(section['install'])
-        self.cmd('sudo apt-get install {}'.format(installables))
-
-    def _install_python_packages(self, section):
-        installables = ' '.join(section['install'])
-        self.cmd('sudo pip install {}'.format(installables))
-
-    def _install_rlang_packages(self, section):
-        installables = ', '.join(repr(e) for e in section['install'])
-        self.cmd('sudo Rscript -e "install.packages({})"'.format(installables))
-
-    def _install_ruby_packages(self, section):
-        installables = ', '.join(repr(e) for e in section['install'])
-        self.cmd('sudo gem install {}'.format(installables))
-
+    def run(self):
+        "override me"
 
 class Builder(Operator):
-    def do(self):
-        env = jinja2.Environment(trim_blocks=True)
+    def build(self):
+        env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
         env.filters['sequence'] = lambda value: ', '.join(repr(x) for x in value)
         template = env.from_string(self.template)
-        model = dict(
-            installs = {section['type']: [] for section in self.recipe['sections']},
-            cleanups = {section['type']: [] for section in self.recipe['sections']}
-        )
-        for section in self.recipe['sections']:
-            if 'install' in section:
-                model['installs'][section['type']].extend(section['install'])
-            if 'cleanup' in section:
-                model['cleanups'][section['type']].extend(section['cleanup'])
-        #print(model)
-        rendered = template.render(**model)
+        # print(vars(self.options))
+        self.recipe.update(vars(self.options))
+        # print(self.recipe)
+        rendered = template.render(**self.recipe)
         if not self.prefix:
             self.prefix = '_'.join(self.recipe['platform'].split(':'))
         self.write_file(rendered)
@@ -265,101 +225,132 @@ class BashBuilder(Builder):
     """
     suffix = '.sh'
     template = dedent('''
-    {% if installs.debian_packages %}
+    COLOR_BOLD_YELLOW="\033[1;33m"
+    COLOR_BOLD_BLUE="\033[1;34m"
+    COLOR_BOLD_MAGENTA="\033[1;35m"
+    COLOR_BOLD_CYAN="\033[1;36m"
+    COLOR_RESET="\033[m"
+
+    CONFIG=config
+    DEFAULT=default
+    CONFIG_DST=$HOME/.config
+    BIN=$HOME/bin
+
+    function recipe {
+        echo
+        echo -e COLOR_BOLD_MAGENTA$1 $COLOR_RESET
+        echo "=========================================================="
+    }
+
+    function section {
+        echo
+        echo -e $COLOR_BOLD_CYAN$1 $COLOR_RESET
+        echo "----------------------------------------------------------"
+    }
+
+    function install_default {
+        echo "installing $1"
+        cp -rf $DEFAULT/$1 $HOME/
+    }
+
+    function install_config {
+        echo "installing $1"
+        cp -rf $CONFIG/$1 $CONFIG_DST/
+    }
+
+    recipe "name: {{name}}"
+    echo "platform: {{platform}}"
+    echo
+
+    section ">>> installing default dotfiles"
+    install_default .fonts
+    install_default .bashrc
+    install_default .ghci
+    install_default .SciteUser.properties
+    install_default .vimrc
+    install_default .xinitrc
+    install_default bin
+    install_default src
+
+    section ">>> installing .config folders"
+    if [ ! -d "$CONFIG_DST" ]; then
+        mkdir -p $CONFIG_DST
+    fi
+    install_config awesome
+    install_config i3
+    install_config i3_status
+    install_config conky
+    install_config roxterm
+    install_config gtk-3.0
+
+    {% for section in sections %}
+    section ">>> {{section.name}}"
+
+    {% if conditional %}
+    echo "Install {{section.name}} {{section.type}}?"
+    echo "{{section.install | join(', ')}}"
+    read -p "Are you sure? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+    {% endif %}
+
+    {% if section.pre_install %}
+    echo "pre-install scripts"
+    {{section.pre_install}}
+    {% endif %}
+
+    {% if section.type == "debian_packages" %}
     sudo apt-get update && apt-get install -y \\
-    {% for package in installs.debian_packages %}
+    {% for package in section.install %}
         {{package}} \\
     {% endfor %}
-     && echo "debian packages installed"
-
-    {% endif %}
-    {% if cleanups.debian_packages %}
-    sudo apt-get purge -y \\
-    {% for package in cleanups.debian_packages %}
-        {{package}} \\
-    {% endfor %}
-     && echo "debian packages purged"
+     && echo "{{section.name}} debian packages installed"
     {% endif %}
 
-    {% if installs.python_packages %}
+    {% if section.type == "python_packages" %}
     sudo -H pip3 install \\
-    {% for package in installs.python_packages %}
+    {% for package in section.install %}
         {{package}} \\
     {% endfor %}
-     && echo "python packages installed"
+     && echo "{{section.name}} python packages installed"
     {% endif %}
 
-    {% if installs.ruby_packages %}
+    {% if section.type == "ruby_packages" %}
     sudo gem install \\
-    {% for package in installs.ruby_packages %}
+    {% for package in section.install %}
         {{package}} \\
     {% endfor %}
-     && echo "ruby packages installed"
+     && echo "{{section.name}} ruby packages installed"
     {% endif %}
 
-    {% if rlang_packages %}
+    {% if section.type == "rlang_packages" %}
     sudo Rscript -e "install.packages({{rlang_packages | sequence}})"
      && echo "rlang packages installed"
     {% endif %}
+
+    {% if section.purge %}
+    sudo apt-get purge -y \\
+    {% for package in section.purge %}
+        {{package}} \\
+    {% endfor %}
+     && echo "{{section.name}} packages purged"
+    {% endif %}
+
+    {% if section.post_install %}
+    echo "post-install scripts"
+    {{section.post_install}}
+    {% endif %}
+
+    {% if conditional %}
+    fi
+    {% endif %}
+    {% endfor %}
     ''')
 
-
-
-
-class ConditionalBashBuilder(Builder):
-    """Builds a bash file for package installation with conditional sections
-    """
-    prefix = 'cond-'
-    template = dedent('''
-    echo "Install debian packages?"
-    echo "{{debian_packages}}"
-    read -p "Are you sure? " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-    {% if debian_packages %}
-        sudo apt-get update && apt-get --no-install-recommends install -y \\
-    {% for package in debian_packages %}
-            {{package}} \\
-    {% endfor %}
-        && echo "debian packages installed"
-    {% endif %}
-    fi
-
-    echo
-
-    echo "Install python packages?"
-    echo "{{python_packages}}"
-    read -p "Are you sure? " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-    {% if python_packages %}
-        sudo -H pip install \\
-    {% for package in python_packages %}
-            {{package}} \\
-    {% endfor %}
-        && echo "python packages installed"
-    {% endif %}
-    fi
-
-    echo "Install ruby packages?"
-    echo "{{ruby_packages}}"
-    read -p "Are you sure? " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-    {% if ruby_packages %}
-        sudo gem install \\
-    {% for package in ruby_packages %}
-            {{package}} \\
-    {% endfor %}
-        && echo "ruby packages installed"
-    {% endif %}
-    fi
-
-''')
-
+    def run(self):
+        path = self.setup.joinpath(self.target)
+        self.cmd("bash {}", path)
 
 class DockerFileBuilder(Builder):
     """Builds a dockerfile for package installation
@@ -402,28 +393,24 @@ def commandline():
                         action='store_true', help='generate dockerfile')
     parser.add_argument('--bashfile', '-b',
                         action='store_true', help='generate bash file')
-    parser.add_argument('--conditionalbashfile', '-c',
-                        action='store_true', help='generate conditional bash file')
-    parser.add_argument('--test-run', '-t',
-                        action='store_true', help='test run')
+    parser.add_argument('--conditional', '-c',
+                        action='store_true', help='add conditional steps')
+    parser.add_argument('--run', '-r',
+                        action='store_true', help='run bash file')
     args = parser.parse_args()
 
     for recipe in args.recipe:
         if args.dockerfile:
             builder = DockerFileBuilder(recipe, args)
-            builder.do()
+            builder.build()
 
         if args.bashfile:
             builder = BashBuilder(recipe, args)
-            builder.do()
+            builder.build()
 
-        if args.conditionalbashfile:
-            builder = ConditionalBashBuilder(recipe, args)
-            builder.do()
+            if args.run:
+                builder.run()
 
-        # install
-        installer = PackageInstaller(recipe, args)
-        installer.do()
 
 if __name__ == '__main__':
     commandline()
