@@ -9,7 +9,7 @@ CONFIG_DST=$HOME/.config
 BIN=$HOME/bin
 function recipe {
     echo
-    echo -e COLOR_BOLD_MAGENTA$1 $COLOR_RESET
+    echo -e $COLOR_BOLD_MAGENTA$1 $COLOR_RESET
     echo "=========================================================="
 }
 function section {
