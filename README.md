@@ -7,7 +7,7 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 
 
-## basic usage: installation
+## Basic usage: Installation
 
 Install a fresh ubuntu server 16.04 LTS distro on a virtual or physical machine engine and then:
 
@@ -19,7 +19,7 @@ $ cd start-vm
 $ ./setup/ubuntu_16.04_base.sh
 ```
 
-## basic usage: generation
+## Basic usage: Generation
 
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
@@ -31,13 +31,13 @@ The generated bash recipe files are created in the `setup` folder
 
 **IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME` and *everything* in `config` is copied into `$HOME/.config`.
 
-As of the current implementation, only ubuntu 16.04 LTS `base.yml` is available. Forks and and pull requests for other variations are of course wellcome.
+A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and and pull requests for other variations are of course wellcome.
 
-Future plans include the generation of Dockerfiles from the recipe.yml files.
+Future plans include the generation of Dockerfiles from recipe.yml files.
 
 ## Creating new recipes
 
-Recipe files are yaml files with a certain structure. The easiest way to learn them is to just customize the included `base.yml` example.
+Recipe files are yaml files with a certain structure. The easiest way to learn is to just customize the included `base.yml` example:
 
 ```yaml
 name: base

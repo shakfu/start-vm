@@ -395,9 +395,9 @@ def commandline():
         description='Install Packages'
     )
     parser.add_argument('recipe', nargs='+', help='recipes to install')
-    parser.add_argument('--dockerfile', '-d',
+    parser.add_argument('--docker', '-d',
                         action='store_true', help='generate dockerfile')
-    parser.add_argument('--bashfile', '-b',
+    parser.add_argument('--bash', '-b',
                         action='store_true', help='generate bash file')
     parser.add_argument('--conditional', '-c',
                         action='store_true', help='add conditional steps')
@@ -406,11 +406,11 @@ def commandline():
     args = parser.parse_args()
 
     for recipe in args.recipe:
-        if args.dockerfile:
+        if args.docker:
             builder = DockerFileBuilder(recipe, args)
             builder.build()
 
-        if args.bashfile:
+        if args.bash:
             builder = BashBuilder(recipe, args)
             builder.build()
 
