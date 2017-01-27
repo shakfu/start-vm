@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-COLOR_BOLD_YELLOW="[1;33m"
-COLOR_BOLD_BLUE="[1;34m"
-COLOR_BOLD_MAGENTA="[1;35m"
-COLOR_BOLD_CYAN="[1;36m"
-COLOR_RESET="[m"
+COLOR_BOLD_YELLOW="\033[1;33m"
+COLOR_BOLD_BLUE="\033[1;34m"
+COLOR_BOLD_MAGENTA="\033[1;35m"
+COLOR_BOLD_CYAN="\033[1;36m"
+COLOR_RESET="\033[m"
 CONFIG=config/base
 DEFAULT=default
 CONFIG_DST=$HOME/.config
@@ -42,7 +42,12 @@ section ">>> installing .config folders"
 if [ ! -d "$CONFIG_DST" ]; then
     mkdir -p $CONFIG_DST
 fi
-install_config base
+install_config awesome
+install_config conky
+install_config gtk-3.0
+install_config i3
+install_config i3status
+install_config roxterm.sourceforge.net
 ###########################################################################
 section ">>> core"
 echo "Install core debian_packages?"

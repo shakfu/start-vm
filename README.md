@@ -1,4 +1,4 @@
-# start-vm: 1 step setups for fresh machines
+# minit: 1 step setups for fresh machines
 
 Generates bash scripts from yaml `recipe` files for 1-step setup of linux-based virtual or physical machines.
 
@@ -14,7 +14,10 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 - Auto-run script after generation
 
-## Basic usage: Installation
+
+## Basic Usage
+
+### Clone and Install
 
 Install a fresh ubuntu server 16.04 LTS distro on a virtual or physical machine engine and then:
 
@@ -26,7 +29,7 @@ $ cd start-vm
 $ ./setup/ubuntu_16.04_base.sh
 ```
 
-## Basic usage: Generation
+### Clone, Generate and Install
 
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
@@ -43,6 +46,29 @@ What is copied out config is a function of which recipe is used such that *every
 A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and and pull requests for other variations are of course wellcome.
 
 Future plans include the generation of Dockerfiles from recipe.yml files.
+
+## Command-line Usage
+
+```
+usage: start-vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
+                   [--executable]
+                   recipe [recipe ...]
+
+Install Packages
+
+positional arguments:
+  recipe             recipes to install
+
+optional arguments:
+  -h, --help         show this help message and exit
+  --docker, -d       generate dockerfile
+  --bash, -b         generate bash file
+  --conditional, -c  add conditional steps
+  --run, -r          run bash file
+  --strip, -s        strip empty lines
+  --executable, -e   make setup file executable
+```
+
 
 ## Creating new recipes
 

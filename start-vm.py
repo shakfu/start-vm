@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-installer: an installation automation tool
+start-vm: 1 step machine initialization
 
 features:
 
@@ -18,7 +18,6 @@ import stat
 import sys
 import traceback
 from abc import ABC, abstractmethod
-from textwrap import dedent
 
 import jinja2
 import yaml
@@ -164,10 +163,8 @@ class Logger(object):
         self._dispatch('critical', msg, *args, **kwargs)
 
 
-
 class Builder(ABC):
     """Base class with standard interface and yaml loading to subclasses
-
     """
     prefix = ''
     suffix = ''
@@ -179,50 +176,59 @@ class Builder(ABC):
         self.options = options
         self.recipe = self._load_yml()
         self.log = Logger(self.__class__.__name__)
-        self.recipe['defaults'] = self._listdir('default')
-        self.recipe['configs'] = self._listdir('config')
+        self.recipe['defaults'] = os.listdir('default')
+        self.recipe['configs'] = os.listdir('config/{}'.format(self.name))
+        self.recipe.update(vars(self.options))
+        self.env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader('templates'),
+            trim_blocks=True,
+            lstrip_blocks=True)
+        self.env.filters['sequence'] = lambda value: ', '.join(
+            repr(x) for x in value)
 
     def __repr__(self):
         return "<{} recipe='{}'>".format(
             self.__class__.__name__, self.recipe_yml)
 
     def _load_yml(self):
+        """loads the yaml recipe file
+        """
         recipe = None
         with self.recipe_yml.open() as f:
             content = f.read()
             recipe = yaml.load(content)
         return recipe
 
-    def _listdir(self, directory):
-        entries = os.listdir(directory)
-        return entries
-
     @property
     def target(self):
         return self.prefix + '_' + self.name + self.suffix
 
     def cmd(self, shell_cmd, *args, **kwds):
+        """executes a shell command with logging and easy formatting
+        """
         shell_cmd = shell_cmd.format(*args, **kwds)
         self.log.info(shell_cmd)
         if self.options.run:
             os.system(shell_cmd)
 
-    def write_file(self, data, strip_empty_lines=True, is_executable=True):
-        if strip_empty_lines:
-            data = '\n'.join([line for line in data.split('\n') if line.strip()])
+    def write_file(self, data):
+        """write setup file with options
+        """
+        if self.options.strip:
+            data = '\n'.join(
+                [line for line in data.split('\n') if line.strip()])
         path = self.setup.joinpath(self.target)
         self.log.info('writing {}', path)
         with path.open('w') as f:
             f.write(data)
-        if is_executable:
+        if self.options.executable:
             st = path.stat()
             path.chmod(st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     def build(self):
-        env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
-        env.filters['sequence'] = lambda value: ', '.join(repr(x) for x in value)
-        template = env.from_string(self.template)
-        self.recipe.update(vars(self.options))
+        """renders a template from a recipe
+        """
+        template = self.env.get_template(self.template)
         rendered = template.render(**self.recipe)
         if not self.prefix:
             self.prefix = '_'.join(self.recipe['platform'].split(':'))
@@ -237,167 +243,26 @@ class BashBuilder(Builder):
     """Builds a bash file for package installation
     """
     suffix = '.sh'
-    template = dedent('''
-    #!/usr/bin/env bash
-
-    COLOR_BOLD_YELLOW="\033[1;33m"
-    COLOR_BOLD_BLUE="\033[1;34m"
-    COLOR_BOLD_MAGENTA="\033[1;35m"
-    COLOR_BOLD_CYAN="\033[1;36m"
-    COLOR_RESET="\033[m"
-
-    CONFIG=config/{{name}}
-    DEFAULT=default
-    CONFIG_DST=$HOME/.config
-    BIN=$HOME/bin
-
-    function recipe {
-        echo
-        echo -e $COLOR_BOLD_MAGENTA$1 $COLOR_RESET
-        echo "=========================================================="
-    }
-
-    function section {
-        echo
-        echo -e $COLOR_BOLD_CYAN$1 $COLOR_RESET
-        echo "----------------------------------------------------------"
-    }
-
-    function install_default {
-        echo "installing $1"
-        cp -rf $DEFAULT/$1 $HOME/
-    }
-
-    function install_config {
-        echo "installing $1"
-        cp -rf $CONFIG/$1 $CONFIG_DST/
-    }
-
-    recipe "name: {{name}}"
-    echo "platform: {{platform}}"
-    echo
-
-    section ">>> installing default dotfiles"
-    {% for entry in defaults %}
-    install_default {{entry}}
-    {% endfor %}
-
-    section ">>> installing .config folders"
-    if [ ! -d "$CONFIG_DST" ]; then
-        mkdir -p $CONFIG_DST
-    fi
-    {% for entry in configs %}
-    install_config {{entry}}
-    {% endfor %}
-
-    {% for section in sections %}
-
-    ###########################################################################
-
-    section ">>> {{section.name}}"
-
-    {% if conditional %}
-    echo "Install {{section.name}} {{section.type}}?"
-    echo "{{section.install | join(', ')}}"
-    read -p "Are you sure? " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-    {% endif %}
-
-    {% if section.pre_install %}
-    echo "pre-install scripts"
-    {{section.pre_install}}
-    {% endif %}
-
-    {% if section.type == "debian_packages" %}
-    sudo apt-get update && sudo apt-get install -y \\
-    {% for package in section.install %}
-        {{package}} \\
-    {% endfor %}
-     && echo "{{section.name}} debian packages installed"
-    {% endif %}
-
-    {% if section.type == "python_packages" %}
-    sudo -H pip3 install \\
-    {% for package in section.install %}
-        {{package}} \\
-    {% endfor %}
-     && echo "{{section.name}} python packages installed"
-    {% endif %}
-
-    {% if section.type == "ruby_packages" %}
-    sudo gem install \\
-    {% for package in section.install %}
-        {{package}} \\
-    {% endfor %}
-     && echo "{{section.name}} ruby packages installed"
-    {% endif %}
-
-    {% if section.type == "rlang_packages" %}
-    sudo Rscript -e "install.packages({{rlang_packages | sequence}})"
-     && echo "rlang packages installed"
-    {% endif %}
-
-    {% if section.purge %}
-    sudo apt-get purge -y \\
-    {% for package in section.purge %}
-        {{package}} \\
-    {% endfor %}
-     && echo "{{section.name}} packages purged"
-    {% endif %}
-
-    {% if section.post_install %}
-    echo "post-install scripts"
-    {{section.post_install}}
-    {% endif %}
-
-    {% if conditional %}
-    fi
-    {% endif %}
-    {% endfor %}
-    ''')
+    template = 'bash.sh'
 
     def run(self):
         path = self.setup.joinpath(self.target)
         self.cmd("bash {}", path)
+
 
 class DockerFileBuilder(Builder):
     """Builds a dockerfile for package installation
     """
     prefix = ''
     suffix = '.Dockerfile'
-    template = dedent('''
-    {% if debian_packages %}
-    RUN apt-get update && apt-get --no-install-recommends install -y \\
-    {% for package in debian_packages %}
-        {{package}} \\
-    {% endfor %}
-     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \\
-    {% endif %}
-    {% if python_packages %}
-     && pip install \\
-    {% for package in python_packages %}
-        {{package}} \\
-    {% endfor %}
-     && rm -rf ${HOME}/.cache /tmp/*
-    {% endif %}
-    {% if ruby_packages %}
-     && gem install \\
-    {% for package in ruby_packages %}
-        {{package}} \\
-    {% endfor %}
-     && rm -rf /tmp/*
-    {% endif %}
-    ''')
+    template = 'Dockerfile'
 
 
 def commandline():
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description='Install Packages'
-    )
+    parser = argparse.ArgumentParser(description='Install Packages')
+    
     parser.add_argument('recipe', nargs='+', help='recipes to install')
     parser.add_argument('--docker', '-d',
                         action='store_true', help='generate dockerfile')
@@ -407,6 +272,10 @@ def commandline():
                         action='store_true', help='add conditional steps')
     parser.add_argument('--run', '-r',
                         action='store_true', help='run bash file')
+    parser.add_argument('--strip', '-s', default=False,
+                        action='store_true', help='strip empty lines')
+    parser.add_argument('--executable', '-e', default=True,
+                        action='store_true', help='make setup file executable')
     args = parser.parse_args()
 
     for recipe in args.recipe:
