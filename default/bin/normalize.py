@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys, hashlib
+import hashlib
+import os
+import sys
 from datetime import datetime
 
 HASH = hashlib.md5(str(datetime.now())).hexdigest()
@@ -48,4 +50,3 @@ def norm_path(path=None):
 
 if __name__ == '__main__':
     norm_path()
-

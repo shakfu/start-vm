@@ -11,17 +11,17 @@ features:
 
 """
 
+import logging
 import os
+import pathlib
 import stat
 import sys
 import traceback
-import logging
-import pathlib
+from abc import ABC, abstractmethod
 from textwrap import dedent
 
-import yaml
 import jinja2
-
+import yaml
 
 DEBUG = True
 
@@ -165,7 +165,7 @@ class Logger(object):
 
 
 
-class Operator:
+class Builder(ABC):
     """Base class with standard interface and yaml loading to subclasses
 
     """
@@ -182,6 +182,10 @@ class Operator:
         self.recipe['defaults'] = self._listdir('default')
         self.recipe['configs'] = self._listdir('config')
 
+    def __repr__(self):
+        return "<{} recipe='{}'>".format(
+            self.__class__.__name__, self.recipe_yml)
+
     def _load_yml(self):
         recipe = None
         with self.recipe_yml.open() as f:
@@ -197,6 +201,12 @@ class Operator:
     def target(self):
         return self.prefix + '_' + self.name + self.suffix
 
+    def cmd(self, shell_cmd, *args, **kwds):
+        shell_cmd = shell_cmd.format(*args, **kwds)
+        self.log.info(shell_cmd)
+        if self.options.run:
+            os.system(shell_cmd)
+
     def write_file(self, data, strip_empty_lines=True, is_executable=True):
         if strip_empty_lines:
             data = '\n'.join([line for line in data.split('\n') if line.strip()])
@@ -208,27 +218,20 @@ class Operator:
             st = path.stat()
             path.chmod(st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-    def cmd(self, shell_cmd, *args, **kwds):
-        shell_cmd = shell_cmd.format(*args, **kwds)
-        self.log.info(shell_cmd)
-        if self.options.run:
-            os.system(shell_cmd)
-
-    def run(self):
-        "override me"
-
-class Builder(Operator):
     def build(self):
         env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
         env.filters['sequence'] = lambda value: ', '.join(repr(x) for x in value)
         template = env.from_string(self.template)
-        # print(vars(self.options))
         self.recipe.update(vars(self.options))
-        # print(self.recipe)
         rendered = template.render(**self.recipe)
         if not self.prefix:
             self.prefix = '_'.join(self.recipe['platform'].split(':'))
         self.write_file(rendered)
+
+    @abstractmethod
+    def run(self):
+        "override me"
+
 
 class BashBuilder(Builder):
     """Builds a bash file for package installation
@@ -243,7 +246,7 @@ class BashBuilder(Builder):
     COLOR_BOLD_CYAN="\033[1;36m"
     COLOR_RESET="\033[m"
 
-    CONFIG=config
+    CONFIG=config/{{name}}
     DEFAULT=default
     CONFIG_DST=$HOME/.config
     BIN=$HOME/bin
@@ -290,6 +293,7 @@ class BashBuilder(Builder):
     {% for section in sections %}
 
     ###########################################################################
+
     section ">>> {{section.name}}"
 
     {% if conditional %}

@@ -1,11 +1,18 @@
-# start-vm
+# start-vm: 1 step setups for fresh machines
 
-Generates bash setup files from yaml `recipe` files for 1-step setup of linux-based virtual or physical machines.
+Generates bash scripts from yaml `recipe` files for 1-step setup of linux-based virtual or physical machines.
 
 Do **NOT** use on a pre-existing installation as this program may well over-write your files. You have been warned!
 
+## Features
 
+- Generation of bash setup script in one of two modes:
 
+    1. Auto-mode: without asking for permission (default)
+
+    2. Conditional mode: asks for permission to install at each step.
+
+- Auto-run script after generation
 
 ## Basic usage: Installation
 
@@ -29,7 +36,9 @@ $ install.py --bashfile recipes/<recipe>.yml
 
 The generated bash recipe files are created in the `setup` folder
 
-**IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME` and *everything* in `config` is copied into `$HOME/.config`.
+**IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME`.
+
+What is copied out config is a function of which recipe is used such that *everything* in `config/<recipe>` is copied into `$HOME/.config`.
 
 A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and and pull requests for other variations are of course wellcome.
 
