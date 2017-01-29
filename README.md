@@ -1,4 +1,4 @@
-# minit: 1 step setups for fresh machines
+# start-vm: 1 step setups for fresh machines
 
 Generates bash scripts from yaml `recipe` files for 1-step setup of linux-based virtual or physical machines.
 
@@ -96,32 +96,10 @@ sections:
         - unzip
         - p7zip-full
         - open-vm-tools
-        - open-vm-tools-desktop
       purge:
         - snapd
       post_install: |
         mkdir -p ~/.host-shared
-
-    - name: database
-      type: debian_packages
-      pre_install: |
-        declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
-        echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
-        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-        sudo apt-get update
-      install:
-        - libpq-dev
-        - postgresql-client-9.6
-        - postgresql-9.6
-        - postgresql-contrib-9.6
-        - postgresql-plpython3-9.6
-        - postgresql-9.6-pllua
-        - luajit
-        - postgresql-9.6-pgtap
-        - pgtap
-      post_install: |
-        sudo -u postgres createuser -s sa
-        sudo -u postgres createdb sa
 
     - name: python
       type: debian_packages
@@ -146,10 +124,32 @@ sections:
           - autopep8
           - glances
 
+    - name: database
+      type: debian_packages
+      pre_install: |
+        declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+        echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
+        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+        sudo apt-get update
+      install:
+        - libpq-dev
+        - postgresql-client-9.6
+        - postgresql-9.6
+        - postgresql-contrib-9.6
+        - postgresql-plpython3-9.6
+        - postgresql-9.6-pllua
+        - luajit
+        - postgresql-9.6-pgtap
+        - pgtap
+      post_install: |
+        sudo -u postgres createuser -s $USER
+        sudo -u postgres createdb $USER
+
     - name: gui
       type: debian_packages
       install:
           - xorg
+          - open-vm-tools-desktop
           - fonts-dejavu
           - gnome-icon-theme
           - awesome

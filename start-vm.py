@@ -5,9 +5,9 @@ start-vm: 1 step machine initialization
 
 features:
 
-    - uses yaml files to generate
-        - bash files
-        - docker files
+- uses yaml files to generate
+    - bash files
+    - docker files
 
 """
 
@@ -164,11 +164,17 @@ class Logger(object):
 
 
 class Builder(ABC):
-    """Base class with standard interface and yaml loading to subclasses
+    """Abstract base class with standard interface / common functions
     """
     prefix = ''
     suffix = ''
     setup = pathlib.Path('setup')
+    filters = {
+        'sequence': lambda val: ', '.join(repr(x) for x in val),
+        'nosudo': lambda val: val.replace('sudo', ' &&'),
+        'junction': lambda val: '\n'.join(
+            ' && ' + line + ' \\' for line in val.split('\n') if line),
+    }
 
     def __init__(self, recipe_yml, options=None):
         self.recipe_yml = pathlib.Path(recipe_yml)
@@ -183,8 +189,7 @@ class Builder(ABC):
             loader=jinja2.FileSystemLoader('templates'),
             trim_blocks=True,
             lstrip_blocks=True)
-        self.env.filters['sequence'] = lambda value: ', '.join(
-            repr(x) for x in value)
+        self.env.filters.update(self.filters)
 
     def __repr__(self):
         return "<{} recipe='{}'>".format(
@@ -201,6 +206,8 @@ class Builder(ABC):
 
     @property
     def target(self):
+        """output target property
+        """
         return self.prefix + '_' + self.name + self.suffix
 
     def cmd(self, shell_cmd, *args, **kwds):
@@ -257,12 +264,16 @@ class DockerFileBuilder(Builder):
     suffix = '.Dockerfile'
     template = 'Dockerfile'
 
+    def run(self):
+        self.log("docker build -t {} -f {}", self.name, self.target)
+
+
 
 def commandline():
     import argparse
 
     parser = argparse.ArgumentParser(description='Install Packages')
-    
+
     parser.add_argument('recipe', nargs='+', help='recipes to install')
     parser.add_argument('--docker', '-d',
                         action='store_true', help='generate dockerfile')
@@ -291,5 +302,16 @@ def commandline():
                 builder.run()
 
 
+# test = '''\
+# declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+# echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
+# wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+# sudo apt-get update'''
+#
+# def junction(block):
+#     return '\n'.join(' && ' + ln + ' \\' for ln in block.split('\n'))
+
+
 if __name__ == '__main__':
+    # print(junction(test))
     commandline()
