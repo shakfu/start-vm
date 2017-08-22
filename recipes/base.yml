@@ -73,6 +73,7 @@ sections:
       type: debian_packages
       install:
           - xorg
+          - xserver-xorg-input-all
           - open-vm-tools-desktop
           - fonts-dejavu
           - gnome-icon-theme

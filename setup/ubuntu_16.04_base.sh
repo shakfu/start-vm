@@ -154,6 +154,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
 sudo apt-get update && sudo apt-get install -y \
     xorg \
+    xserver-xorg-input-all \
     open-vm-tools-desktop \
     fonts-dejavu \
     gnome-icon-theme \
