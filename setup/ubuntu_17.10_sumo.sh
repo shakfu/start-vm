@@ -63,6 +63,12 @@ install_config xfce4
 
 section ">>> core"
 
+echo "Install core debian_packages?"
+echo "build-essential, ncdu, htop, vim, exuberant-ctags, tig, ranger, bmon, pv, rpl, unzip, p7zip-full, open-vm-tools"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 echo "pre-install scripts"
 sudo apt-get update && sudo apt-get dist-upgrade -y
@@ -87,6 +93,7 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+
 sudo apt-get purge -y \
     snapd \
  && echo "core packages purged"
@@ -95,11 +102,18 @@ echo "post-install scripts"
 mkdir -p ~/.host-shared
 
 
+fi
 
 ###########################################################################
 
 section ">>> python"
 
+echo "Install python debian_packages?"
+echo "python3-dev, python3-setuptools, python3-pip"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -114,10 +128,18 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+fi
+
 ###########################################################################
 
 section ">>> py_modules"
 
+echo "Install py_modules python_packages?"
+echo "wheel, virtualenv, ipython, cython, psycopg2, pgcli, grin, isort, pylint, radon, autopep8, glances"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 
@@ -141,10 +163,18 @@ sudo -H pip3 install \
 
 
 
+fi
+
 ###########################################################################
 
 section ">>> database"
 
+echo "Install database debian_packages?"
+echo "libpq-dev, postgresql-client-9.6, postgresql-9.6, postgresql-contrib-9.6, postgresql-plpython3-9.6, postgresql-9.6-pllua, luajit, postgresql-9.6-pgtap, pgtap"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -163,16 +193,24 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+
 echo "post-install scripts"
 sudo -u postgres createuser -s $USER
 sudo -u postgres createdb $USER
 
 
+fi
 
 ###########################################################################
 
 section ">>> gui"
 
+echo "Install gui debian_packages?"
+echo "xorg, xserver-xorg-input-all, open-vm-tools-desktop, fonts-dejavu, gnome-icon-theme, awesome, i3, xfce4-terminal, lxappearance, gtk2-engines, conky, scite, gtkorphan, fslint, bleachbit"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -199,10 +237,18 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+fi
+
 ###########################################################################
 
 section ">>> latex"
 
+echo "Install latex debian_packages?"
+echo "pandoc, lmodern, texlive-generic-recommended, texlive-fonts-recommended, texlive-humanities, texlive-latex-extra, texlive-xetex, texinfo"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -220,6 +266,14 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+sudo apt-get purge -y \
+    texlive-latex-extra-doc \
+    texlive-pictures-doc \
+    texlive-latex-base-doc \
+    texlive-latex-recommended-doc \
+    texlive-humanities-doc \
+ && echo "latex packages purged"
+
 echo "post-install scripts"
 cd /usr/share/texlive/texmf-dist
 sudo wget http://mirrors.ctan.org/install/fonts/inconsolata.tds.zip
@@ -230,11 +284,18 @@ sudo mktexlsr
 sudo updmap-sys
 
 
+fi
 
 ###########################################################################
 
 section ">>> rlang"
 
+echo "Install rlang debian_packages?"
+echo "fonts-texgyre, libssl-dev, libxml2-dev, libcurl4-openssl-dev, libcairo2-dev, libxt-dev, libssh2-1-dev, r-base, r-base-dev, r-recommended"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -256,9 +317,18 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+fi
+
 ###########################################################################
 
 section ">>> rlang-packages"
+
+echo "Install rlang-packages rlang_packages?"
+echo "docopt, shiny, rmarkdown, flexdashboard, ggplot2, scales, RPostgreSQL, data.table, dplyr, dtplyr, pander, xtable, stringr, tidyr, purrr, forecast, zoo, openxlsx, readxl, janitor, RColorBrewer, gmodels, qcc, shinydashboard, shinythemes, rmdshower, devtools, leaflet, dygraphs, plotly, rbokeh, highcharter, visNetwork, networkD3, d3heatmap, DT, timevis, DiagrammeR, metricsgraphics, ggiraph, rhandsontable, formattable, rpivotTable, repr, IRdisplay, crayon, pbdZMQ"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
 
 
 
@@ -270,3 +340,30 @@ sudo Rscript -e "install.packages(c('docopt', 'shiny', 'rmarkdown', 'flexdashboa
 
 
 
+fi
+
+###########################################################################
+
+section ">>> docker"
+
+echo "Install docker?"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+
+
+
+
+curl -fsSL get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+rm get-docker.sh
+
+echo "docker installed"
+
+
+
+
+fi

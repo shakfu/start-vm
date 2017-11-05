@@ -57,8 +57,12 @@ install_config {{entry}}
 section ">>> {{section.name}}"
 
 {% if conditional %}
+{% if section.type == "bash" %}
+echo "Install {{section.name}}?"
+{% else %}
 echo "Install {{section.name}} {{section.type}}?"
 echo "{{section.install | join(', ')}}"
+{% endif %}
 read -p "Are you sure? " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -92,6 +96,11 @@ sudo gem install \
     {{package}} \
 {% endfor %}
  && echo "{{section.name}} ruby packages installed"
+{% endif %}
+
+{% if section.type == "bash" %}
+{{section.install}}
+echo "{{section.name}} installed"
 {% endif %}
 
 {% if section.type == "rlang_packages" %}

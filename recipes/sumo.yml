@@ -95,6 +95,13 @@ sections:
           - texlive-latex-extra
           - texlive-xetex
           - texinfo
+      purge:
+          - texlive-latex-extra-doc
+          - texlive-pictures-doc
+          - texlive-latex-base-doc
+          - texlive-latex-recommended-doc
+          - texlive-humanities-doc
+
       post_install: |
         cd /usr/share/texlive/texmf-dist
         sudo wget http://mirrors.ctan.org/install/fonts/inconsolata.tds.zip
@@ -168,3 +175,11 @@ sections:
           - IRdisplay
           - crayon
           - pbdZMQ
+
+    - name: docker
+      type: bash
+      install: |
+        curl -fsSL get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker $USER
+        rm get-docker.sh
