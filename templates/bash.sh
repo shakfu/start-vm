@@ -6,7 +6,7 @@ COLOR_BOLD_MAGENTA="\033[1;35m"
 COLOR_BOLD_CYAN="\033[1;36m"
 COLOR_RESET="\033[m"
 
-CONFIG=config/{{name}}
+CONFIG=config/{{config}}
 DEFAULT=default
 CONFIG_DST=$HOME/.config
 BIN=$HOME/bin
@@ -95,7 +95,7 @@ sudo gem install \
 {% endif %}
 
 {% if section.type == "rlang_packages" %}
-sudo Rscript -e "install.packages({{rlang_packages | sequence}})"
+sudo Rscript -e "install.packages(c({{section.install | sequence}}), repos='http://cran.rstudio.com/')" \
  && echo "rlang packages installed"
 {% endif %}
 

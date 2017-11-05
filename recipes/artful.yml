@@ -1,5 +1,6 @@
 
 name: artful
+config: artful
 platform: ubuntu:17.10
 sections:
     - name: core

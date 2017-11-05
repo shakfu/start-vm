@@ -1,5 +1,6 @@
 
 name: base
+config: base
 platform: ubuntu:16.04
 sections:
     - name: core

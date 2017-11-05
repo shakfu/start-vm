@@ -32,136 +32,7 @@ else:
 LOG_FORMAT = '%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s'
 logging.basicConfig(level=LOG_LEVEL,
                     format=LOG_FORMAT,
-                    # filename=LOG_FILE,
                     stream=sys.stdout)
-
-
-class Logger(object):
-    """A logger class with color that can handle console and gui cases.
-    """
-    COLORS_LOG = {
-        'debug':    'green',
-        'info':     'cyan',
-        'warn':     'yellow',
-        'error':    'red',
-        'critical': 'red',
-    }
-
-    ATTRIBUTES = dict(bold=1, underline=4)
-
-    COLORS_TXT = dict(
-        red=31,
-        green=32,
-        yellow=33,
-        blue=34,
-        magenta=35,
-        cyan=36,
-        white=37
-    )
-    RESET = '\033[0m'
-
-    def __init__(self, name, is_colored=True, options=None):
-        self.name = name
-        self.log = logging.getLogger(name)
-        self.is_colored = is_colored
-        self.options = options
-
-    def colored(self, text, color=None, attrs=None):
-        """Colorize text.
-
-        Available text colors:
-            red, green, yellow, blue, magenta, cyan, white.
-
-        Available attributes:
-            bold, dark, underline, blink, reverse, concealed.
-
-        Example:
-            colored('Hello, World!', 'red', ['blue', 'blink'])
-            colored('Hello, World!', 'green')
-
-        """
-        if os.getenv('ANSI_COLORS_DISABLED') is None:
-            fmt_str = '\033[%dm%s'
-            if color is not None:
-                text = fmt_str % (self.COLORS_TXT[color], text)
-
-            if attrs is not None:
-                for attr in attrs:
-                    text = fmt_str % (self.ATTRIBUTES[attr], text)
-
-            text += self.RESET
-        return text
-
-    @property
-    def level(self):
-        """Get logging level.
-        """
-        return logging.getLevelName(self.log.level)
-
-    @level.setter
-    def level(self, value):
-        """Set logging level.
-        """
-        log_level = {
-            'debug': logging.DEBUG,        # 10
-            'info': logging.INFO,          # 20
-            'warn': logging.WARN,          # 30
-            'error': logging.ERROR,        # 40
-            'critical': logging.CRITICAL,  # 50
-        }
-        if isinstance(value, str):
-            assert value in log_level, 'level not implemented'
-            self.log.parent.setLevel(log_level[value])
-        elif isinstance(value, int):
-            self.log.parent.setLevel(value)
-        else:
-            raise NotImplementedError
-
-    def _dispatch(self, category, msg, *args, **kwargs):
-        """Helper function for coloring log msg by type of msg.
-        """
-        msg = msg.format(*args, **kwargs)
-        if self.is_colored:
-            getattr(self.log, category)(
-                self.colored(msg,
-                             self.COLORS_LOG[category],
-                             attrs=['bold']
-                             )
-            )
-        else:
-            getattr(self.log, category)
-
-    def exception(self, msg, *args, **kwargs):
-        """Log info msg.
-        """
-        self.log.exception(msg, *args, **kwargs)
-        raise
-
-    def info(self, msg, *args, **kwargs):
-        """Log info msg.
-        """
-        self._dispatch('info', msg, *args, **kwargs)
-
-    def debug(self, msg, *args, **kwargs):
-        """Log debug msg.
-        """
-        self._dispatch('debug', msg, *args, **kwargs)
-
-    def warn(self, msg, *args, **kwargs):
-        """Log warn msg.
-        """
-        self._dispatch('warn', msg, *args, **kwargs)
-
-    def error(self, msg, *args, **kwargs):
-        """Log error msg.
-        """
-        self._dispatch('error', msg, *args, **kwargs)
-
-    def critical(self, msg, *args, **kwargs):
-        """Log critical msg.
-        """
-        self._dispatch('critical', msg, *args, **kwargs)
-
 
 class Builder(ABC):
     """Abstract base class with standard interface / common functions
@@ -181,9 +52,9 @@ class Builder(ABC):
         self.name = self.recipe_yml.stem
         self.options = options
         self.recipe = self._load_yml()
-        self.log = Logger(self.__class__.__name__)
+        self.log = logging.getLogger(self.__class__.__name__)
         self.recipe['defaults'] = os.listdir('default')
-        self.recipe['configs'] = os.listdir('config/{}'.format(self.name))
+        self.recipe['configs'] = os.listdir('config/{}'.format(self.recipe['config']))
         self.recipe.update(vars(self.options))
         self.env = jinja2.Environment(
             loader=jinja2.FileSystemLoader('templates'),
@@ -225,7 +96,7 @@ class Builder(ABC):
             data = '\n'.join(
                 [line for line in data.split('\n') if line.strip()])
         path = self.setup.joinpath(self.target)
-        self.log.info('writing {}', path)
+        self.log.info('writing %s', path)
         with path.open('w') as f:
             f.write(data)
         if self.options.executable:
@@ -265,7 +136,7 @@ class DockerFileBuilder(Builder):
     template = 'Dockerfile'
 
     def run(self):
-        self.log("docker build -t {} -f {}", self.name, self.target)
+        self.log("docker build -t %s -f %s", self.name, self.target)
 
 
 
@@ -301,17 +172,5 @@ def commandline():
             if args.run:
                 builder.run()
 
-
-# test = '''\
-# declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
-# echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
-# wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-# sudo apt-get update'''
-#
-# def junction(block):
-#     return '\n'.join(' && ' + ln + ' \\' for ln in block.split('\n'))
-
-
 if __name__ == '__main__':
-    # print(junction(test))
     commandline()
