@@ -34,7 +34,7 @@ $ ./setup/ubuntu_16.04_base.sh
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
 ```
-$ install.py --bashfile recipes/<recipe>.yml
+$ start_vm.py --bashfile recipes/<recipe>.yml
 ```
 
 The generated bash recipe files are created in the `setup` folder
@@ -50,7 +50,7 @@ Future plans include the generation of Dockerfiles from recipe.yml files.
 ## Command-line Usage
 
 ```
-usage: start-vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
+usage: start_vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
                    [--executable]
                    recipe [recipe ...]
 
@@ -76,6 +76,7 @@ Recipe files are yaml files with a certain structure. The easiest way to learn i
 
 ```yaml
 name: base
+config: base
 platform: ubuntu:16.04
 sections:
     - name: core
@@ -149,6 +150,7 @@ sections:
       type: debian_packages
       install:
           - xorg
+          - xserver-xorg-input-all
           - open-vm-tools-desktop
           - fonts-dejavu
           - gnome-icon-theme
@@ -169,4 +171,4 @@ sections:
 
 - ubuntu 14.04 LTS
 - ubuntu 17.10
-
+- ubuntu 17.10 sumo edition
