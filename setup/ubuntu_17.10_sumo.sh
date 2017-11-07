@@ -439,6 +439,55 @@ fi
 
 ###########################################################################
 
+section ">>> golang"
+
+echo "Install golang?"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+
+
+
+
+GOLANG=go1.9.2.linux-amd64.tar.gz
+wget https://redirector.gvt1.com/edgedl/go/$GOLANG
+sudo tar -C /usr/local -xzf $GOLANG
+rm -rf $GOLANG
+
+echo "golang installed"
+
+
+
+
+fi
+
+###########################################################################
+
+section ">>> rust-lang"
+
+echo "Install rust-lang?"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+
+
+
+
+curl https://sh.rustup.rs -sSf | sh
+
+echo "rust-lang installed"
+
+
+
+
+fi
+
+###########################################################################
+
 section ">>> powerline-fonts"
 
 echo "Install powerline-fonts?"
