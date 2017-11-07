@@ -261,9 +261,9 @@ let g:AutoClosePumvisible = {"ENTER": "\<C-Y>", "ESC": "\<ESC>"}
 
 " to use fancy symbols for powerline, uncomment the following line and use a
 " patched font (more info on the README.rst)
-" let g:Powerline_symbols = 'fancy'
+let g:Powerline_symbols = 'fancy'
 
-" let g:airline_powerline_fonts = 1
+let g:airline_powerline_fonts = 1
 " if !exists('g:airline_symbols')
 "    let g:airline_symbols = {}
 " endif

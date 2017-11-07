@@ -100,6 +100,11 @@ sudo apt-get purge -y \
 
 echo "post-install scripts"
 mkdir -p ~/.host-shared
+# Reset font cache on Linux
+if command -v fc-cache @>/dev/null ; then
+    echo "Resetting font cache"
+    fc-cache -f $HOME/.fonts
+fi
 
 
 fi
@@ -424,6 +429,33 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
+
+
+
+
+fi
+
+###########################################################################
+
+section ">>> powerline-fonts"
+
+echo "Install powerline-fonts?"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+
+
+
+
+git clone https://github.com/powerline/fonts.git --depth=1
+cd fonts
+./install.sh
+cd ..
+rm -rf fonts
+
+echo "powerline-fonts installed"
 
 
 

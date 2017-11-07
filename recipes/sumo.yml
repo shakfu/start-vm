@@ -25,6 +25,11 @@ sections:
         - snapd
       post_install: |
         mkdir -p ~/.host-shared
+        # Reset font cache on Linux
+        if command -v fc-cache @>/dev/null ; then
+            echo "Resetting font cache"
+            fc-cache -f $HOME/.fonts
+        fi
 
     - name: python
       type: debian_packages
@@ -205,3 +210,12 @@ sections:
         echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
       install:
           - sublime-text
+
+    - name: powerline-fonts
+      type: bash
+      install: |
+        git clone https://github.com/powerline/fonts.git --depth=1
+        cd fonts
+        ./install.sh
+        cd ..
+        rm -rf fonts
