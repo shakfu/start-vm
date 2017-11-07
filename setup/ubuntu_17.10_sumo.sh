@@ -41,6 +41,7 @@ section ">>> installing default dotfiles"
 install_default .bashrc
 install_default .fonts
 install_default .ghci
+install_default .gtkrc-2.0
 install_default .SciTEUser.properties
 install_default .vimrc
 install_default .xinitrc
@@ -64,7 +65,7 @@ install_config xfce4
 section ">>> core"
 
 echo "Install core debian_packages?"
-echo "build-essential, ncdu, htop, vim, exuberant-ctags, tig, ranger, bmon, pv, rpl, unzip, p7zip-full, open-vm-tools"
+echo "build-essential, cmake, ncdu, htop, vim, exuberant-ctags, tig, ranger, bmon, pv, rpl, unzip, p7zip-full, open-vm-tools"
 read -p "Are you sure? " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -76,6 +77,7 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 sudo apt-get update && sudo apt-get install -y \
     build-essential \
+    cmake \
     ncdu \
     htop \
     vim \
@@ -458,6 +460,11 @@ rm -rf fonts
 echo "powerline-fonts installed"
 
 
+
+echo "post-install scripts"
+sudo apt-get autoremove
+sudo apt-get autoclean
+sudo apt-get clean
 
 
 fi
