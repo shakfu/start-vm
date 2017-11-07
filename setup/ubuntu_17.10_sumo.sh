@@ -400,3 +400,32 @@ echo "docker installed"
 
 
 fi
+
+###########################################################################
+
+section ">>> sublime-text"
+
+echo "Install sublime-text debian_packages?"
+echo "sublime-text"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+echo "pre-install scripts"
+wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add
+sudo apt-get install apt-transport-https
+echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
+
+
+sudo apt-get update && sudo apt-get install -y \
+    sublime-text \
+ && echo "sublime-text debian packages installed"
+
+
+
+
+
+
+
+fi
