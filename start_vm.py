@@ -96,8 +96,19 @@ class Builder(ABC):
             fopen.write(data)
         if self.options.executable:
             flag = path.stat()
-            path.chmod(flag.st_mode | stat.S_IXUSR | stat.S_IXGRP |
+            path.chmod(flag.st_mode |
+                       stat.S_IXUSR |
+                       stat.S_IXGRP |
                        stat.S_IXOTH)
+
+    def run_section(self, name):
+        """Run individual section from recipy."""
+        section = [section for section in self.recipe['sections'] if section['name'] == name][0]
+        if section['type'] == 'bash':
+            shellcmd = "; ".join(section['install'].splitlines())
+            os.system(shellcmd)
+        else:
+            print("Only sections of type 'bash' can be run currently.")
 
     def build(self):
         """Renders a template from a recipe."""
@@ -146,9 +157,14 @@ def commandline():
     option('--run', '-r', action='store_true', help='run bash file')
     option('--strip', '-s', default=False, action='store_true', help='strip empty lines')
     option('--executable', '-e', default=True, action='store_true', help='make setup file executable')
+    option('--section', type=str, help='run section')
     args = parser.parse_args()
 
     for recipe in args.recipe:
+        if args.section:
+            builder = BashBuilder(recipe, args)
+            builder.run_section(args.section)
+
         if args.docker:
             builder = DockerFileBuilder(recipe, args)
             builder.build()
