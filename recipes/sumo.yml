@@ -176,10 +176,23 @@ sections:
           - crayon
           - pbdZMQ
 
+    - name: rstudio
+      type: debian_packages
+      install:
+          - libjpeg62
+          - libgstreamer1.0-0
+          - libgstreamer-plugins-base1.0-0
+      post_install: |
+        RSTUDIO=rstudio-xenial-1.1.383-amd64.deb
+        wget https://download1.rstudio.org/$RSTUDIO
+        sudo dpkg -i $RSTUDIO
+        rm $RSTUDIO
+
     - name: docker
       type: bash
       install: |
-        curl -fsSL get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
+        DOCKER=get-docker.sh
+        curl -fsSL get.docker.com -o $DOCKER
+        sudo sh $DOCKER
         sudo usermod -aG docker $USER
-        rm get-docker.sh
+        rm $DOCKER

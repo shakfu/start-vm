@@ -6,7 +6,7 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 ## Features
 
-- Generation of bash setup script in one of two modes:
+- Generation of bash setup scripts in one of two modes:
 
     1. Auto-mode: without asking for permission (default)
 
@@ -34,18 +34,18 @@ $ ./setup/ubuntu_16.04_base.sh
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
 ```
-$ start_vm.py --bashfile recipes/<recipe>.yml
+$ start_vm.py --bashfile --conditional recipes/<recipe>.yml
 ```
 
 The generated bash recipe files are created in the `setup` folder
 
 **IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME`.
 
-What is copied out config is a function of which recipe is used such that *everything* in `config/<recipe>` is copied into `$HOME/.config`.
+What is copied out of config is a function of which recipe is used such that *everything* in `config/<recipe>` is copied into `$HOME/.config`.
 
-A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and and pull requests for other variations are of course wellcome.
+A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and pull requests for other variations are of course wellcome.
 
-Future plans include the generation of Dockerfiles from recipe.yml files.
+Future plans include the generation of Dockerfiles from `<recipe>.yml` files.
 
 ## Command-line Usage
 

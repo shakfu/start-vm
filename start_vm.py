@@ -137,31 +137,15 @@ def commandline():
     import argparse
 
     parser = argparse.ArgumentParser(description='Install Packages')
+    option = parser.add_argument
 
-    parser.add_argument('recipe', nargs='+', help='recipes to install')
-    parser.add_argument(
-        '--docker', '-d', action='store_true', help='generate dockerfile')
-    parser.add_argument(
-        '--bash', '-b', action='store_true', help='generate bash file')
-    parser.add_argument(
-        '--conditional',
-        '-c',
-        action='store_true',
-        help='add conditional steps')
-    parser.add_argument(
-        '--run', '-r', action='store_true', help='run bash file')
-    parser.add_argument(
-        '--strip',
-        '-s',
-        default=False,
-        action='store_true',
-        help='strip empty lines')
-    parser.add_argument(
-        '--executable',
-        '-e',
-        default=True,
-        action='store_true',
-        help='make setup file executable')
+    option('recipe', nargs='+', help='recipes to install')
+    option('--docker', '-d', action='store_true', help='generate dockerfile')
+    option('--bash', '-b', action='store_true', help='generate bash file')
+    option('--conditional', '-c', action='store_true', help='add conditional steps')
+    option('--run', '-r', action='store_true', help='run bash file')
+    option('--strip', '-s', default=False, action='store_true', help='strip empty lines')
+    option('--executable', '-e', default=True, action='store_true', help='make setup file executable')
     args = parser.parse_args()
 
     for recipe in args.recipe:

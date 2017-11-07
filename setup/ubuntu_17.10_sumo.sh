@@ -344,6 +344,38 @@ fi
 
 ###########################################################################
 
+section ">>> rstudio"
+
+echo "Install rstudio debian_packages?"
+echo "libjpeg62, libgstreamer1.0-0, libgstreamer-plugins-base1.0-0"
+read -p "Are you sure? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+
+
+sudo apt-get update && sudo apt-get install -y \
+    libjpeg62 \
+    libgstreamer1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
+ && echo "rstudio debian packages installed"
+
+
+
+
+
+
+echo "post-install scripts"
+RSTUDIO=rstudio-xenial-1.1.383-amd64.deb
+wget https://download1.rstudio.org/$RSTUDIO
+sudo dpkg -i $RSTUDIO
+rm $RSTUDIO
+
+
+fi
+
+###########################################################################
+
 section ">>> docker"
 
 echo "Install docker?"
@@ -356,10 +388,11 @@ then
 
 
 
-curl -fsSL get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
+DOCKER=get-docker.sh
+curl -fsSL get.docker.com -o $DOCKER
+sudo sh $DOCKER
 sudo usermod -aG docker $USER
-rm get-docker.sh
+rm $DOCKER
 
 echo "docker installed"
 
