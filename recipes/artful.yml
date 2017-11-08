@@ -9,6 +9,7 @@ sections:
         sudo apt-get update && sudo apt-get dist-upgrade -y
       install:
         - build-essential
+        - cmake
         - ncdu
         - htop
         - vim
@@ -25,6 +26,11 @@ sections:
         - snapd
       post_install: |
         mkdir -p ~/.host-shared
+        # Reset font cache on Linux
+        if command -v fc-cache @>/dev/null ; then
+            echo "Resetting font cache"
+            fc-cache -f $HOME/.fonts
+        fi
 
     - name: python
       type: debian_packages
@@ -48,22 +54,6 @@ sections:
           - radon
           - autopep8
           - glances
-
-    - name: database
-      type: debian_packages
-      install:
-        - libpq-dev
-        - postgresql-client-9.6
-        - postgresql-9.6
-        - postgresql-contrib-9.6
-        - postgresql-plpython3-9.6
-        - postgresql-9.6-pllua
-        - luajit
-        - postgresql-9.6-pgtap
-        - pgtap
-      post_install: |
-        sudo -u postgres createuser -s $USER
-        sudo -u postgres createdb $USER
 
     - name: gui
       type: debian_packages

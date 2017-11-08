@@ -45,6 +45,7 @@ Plugin 'tpope/vim-surround'
 
 " code completion (run python3 install in the folder)
 Plugin 'valloric/youcompleteme'
+" Plugin 'ajh17/VimCompletesMe'
 
 " language mode
 Plugin 'klen/python-mode'
