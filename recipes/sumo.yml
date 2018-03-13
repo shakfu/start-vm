@@ -134,53 +134,54 @@ sections:
     - name: rlang-packages
       type: rlang_packages
       install:
-          - docopt
-          - shiny
-          - rmarkdown
-          - flexdashboard
-          - ggplot2
-          - scales
-          - RPostgreSQL
+          - crayon
+          - d3heatmap
           - data.table
-          - dplyr
+          - dbplyr
+          - devtools
+          - DiagrammeR
+          - docopt
+          - DT
           - dtplyr
-          - pander
-          - xtable
-          - stringr
-          - tidyr
-          - purrr
+          - dygraphs
+          - flexdashboard
           - forecast
-          - zoo
-          - openxlsx
-          - readxl
-          - janitor
-          - RColorBrewer
+          - formattable
+          - ggalt
+          - ggiraph
+          - ggcorrplot
+          - ggExtra
+          - ggthemes
           - gmodels
+          - highcharter
+          - IRdisplay
+          - janitor
+          - leaflet
+          - metricsgraphics
+          - networkD3
+          - openxlsx
+          - pander
+          - pbdZMQ
+          - plotly
           - qcc
+          - rbokeh
+          - RColorBrewer
+          - repr
+          - rhandsontable
+          - rmarkdown
+          - rmdshower
+          - rpivotTable
+          - RPostgres
+          - scales
+          - shiny
           - shinydashboard
           - shinythemes
-          - rmdshower
-          - devtools
-          - leaflet
-          - dygraphs
-          - plotly
-          - rbokeh
-          - highcharter
-          - visNetwork
-          - networkD3
-          - d3heatmap
-          - DT
+          - tidyverse
           - timevis
-          - DiagrammeR
-          - metricsgraphics
-          - ggiraph
-          - rhandsontable
-          - formattable
-          - rpivotTable
-          - repr
-          - IRdisplay
-          - crayon
-          - pbdZMQ
+          - treemapify
+          - visNetwork
+          - xtable
+          - zoo
 
     - name: rstudio
       type: debian_packages
@@ -189,7 +190,7 @@ sections:
           - libgstreamer1.0-0
           - libgstreamer-plugins-base1.0-0
       post_install: |
-        RSTUDIO=rstudio-xenial-1.1.383-amd64.deb
+        RSTUDIO=rstudio-xenial-1.1.442-amd64.deb
         wget https://download1.rstudio.org/$RSTUDIO
         sudo dpkg -i $RSTUDIO
         rm $RSTUDIO

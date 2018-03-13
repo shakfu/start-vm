@@ -38,38 +38,32 @@ echo "platform: ubuntu:17.10"
 echo
 
 section ">>> installing default dotfiles"
-install_default .bashrc
 install_default .fonts
-install_default .ghci
-install_default .gtkrc-2.0
-install_default .SciTEUser.properties
-install_default .vimrc
-install_default .xinitrc
 install_default bin
+install_default .bashrc
+install_default .SciTEUser.properties
+install_default .xinitrc
+install_default .gtkrc-2.0
+install_default .vimrc
+install_default .ghci
 install_default src
 
 section ">>> installing .config folders"
 if [ ! -d "$CONFIG_DST" ]; then
     mkdir -p $CONFIG_DST
 fi
-install_config awesome
 install_config conky
 install_config gtk-3.0
-install_config i3
-install_config i3status
 install_config xfce4
+install_config i3status
+install_config i3
+install_config awesome
 
 
 ###########################################################################
 
 section ">>> core"
 
-echo "Install core debian_packages?"
-echo "build-essential, cmake, ncdu, htop, vim, exuberant-ctags, tig, ranger, bmon, pv, rpl, unzip, p7zip-full, open-vm-tools"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 echo "pre-install scripts"
 sudo apt-get update && sudo apt-get dist-upgrade -y
@@ -109,18 +103,11 @@ if command -v fc-cache @>/dev/null ; then
 fi
 
 
-fi
 
 ###########################################################################
 
 section ">>> python"
 
-echo "Install python debian_packages?"
-echo "python3-dev, python3-setuptools, python3-pip"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -135,18 +122,11 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> py_modules"
 
-echo "Install py_modules python_packages?"
-echo "wheel, virtualenv, ipython, cython, psycopg2, pgcli, grin, isort, pylint, radon, autopep8, glances"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
@@ -170,18 +150,11 @@ sudo -H pip3 install \
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> database"
 
-echo "Install database debian_packages?"
-echo "libpq-dev, postgresql-client-9.6, postgresql-9.6, postgresql-contrib-9.6, postgresql-plpython3-9.6, postgresql-9.6-pllua, luajit, postgresql-9.6-pgtap, pgtap"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -206,18 +179,11 @@ sudo -u postgres createuser -s $USER
 sudo -u postgres createdb $USER
 
 
-fi
 
 ###########################################################################
 
 section ">>> gui"
 
-echo "Install gui debian_packages?"
-echo "xorg, xserver-xorg-input-all, open-vm-tools-desktop, fonts-dejavu, gnome-icon-theme, awesome, i3, xfce4-terminal, lxappearance, gtk2-engines, conky, scite, gtkorphan, fslint, bleachbit"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -244,18 +210,11 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> latex"
 
-echo "Install latex debian_packages?"
-echo "pandoc, lmodern, texlive-generic-recommended, texlive-fonts-recommended, texlive-humanities, texlive-latex-extra, texlive-xetex, texinfo"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -291,18 +250,11 @@ sudo mktexlsr
 sudo updmap-sys
 
 
-fi
 
 ###########################################################################
 
 section ">>> rlang"
 
-echo "Install rlang debian_packages?"
-echo "fonts-texgyre, libssl-dev, libxml2-dev, libcurl4-openssl-dev, libcairo2-dev, libxt-dev, libssh2-1-dev, r-base, r-base-dev, r-recommended"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -324,41 +276,27 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> rlang-packages"
 
-echo "Install rlang-packages rlang_packages?"
-echo "docopt, shiny, rmarkdown, flexdashboard, ggplot2, scales, RPostgreSQL, data.table, dplyr, dtplyr, pander, xtable, stringr, tidyr, purrr, forecast, zoo, openxlsx, readxl, janitor, RColorBrewer, gmodels, qcc, shinydashboard, shinythemes, rmdshower, devtools, leaflet, dygraphs, plotly, rbokeh, highcharter, visNetwork, networkD3, d3heatmap, DT, timevis, DiagrammeR, metricsgraphics, ggiraph, rhandsontable, formattable, rpivotTable, repr, IRdisplay, crayon, pbdZMQ"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
 
 
 
-sudo Rscript -e "install.packages(c('docopt', 'shiny', 'rmarkdown', 'flexdashboard', 'ggplot2', 'scales', 'RPostgreSQL', 'data.table', 'dplyr', 'dtplyr', 'pander', 'xtable', 'stringr', 'tidyr', 'purrr', 'forecast', 'zoo', 'openxlsx', 'readxl', 'janitor', 'RColorBrewer', 'gmodels', 'qcc', 'shinydashboard', 'shinythemes', 'rmdshower', 'devtools', 'leaflet', 'dygraphs', 'plotly', 'rbokeh', 'highcharter', 'visNetwork', 'networkD3', 'd3heatmap', 'DT', 'timevis', 'DiagrammeR', 'metricsgraphics', 'ggiraph', 'rhandsontable', 'formattable', 'rpivotTable', 'repr', 'IRdisplay', 'crayon', 'pbdZMQ'), repos='http://cran.rstudio.com/')" \
+sudo Rscript -e "install.packages(c('crayon', 'd3heatmap', 'data.table', 'dbplyr', 'devtools', 'DiagrammeR', 'docopt', 'DT', 'dtplyr', 'dygraphs', 'flexdashboard', 'forecast', 'formattable', 'ggalt', 'ggiraph', 'ggcorrplot', 'ggExtra', 'ggthemes', 'gmodels', 'highcharter', 'IRdisplay', 'janitor', 'leaflet', 'metricsgraphics', 'networkD3', 'openxlsx', 'pander', 'pbdZMQ', 'plotly', 'qcc', 'rbokeh', 'RColorBrewer', 'repr', 'rhandsontable', 'rmarkdown', 'rmdshower', 'rpivotTable', 'RPostgres', 'scales', 'shiny', 'shinydashboard', 'shinythemes', 'tidyverse', 'timevis', 'treemapify', 'visNetwork', 'xtable', 'zoo'), repos='http://cran.rstudio.com/')" \
  && echo "rlang packages installed"
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> rstudio"
 
-echo "Install rstudio debian_packages?"
-echo "libjpeg62, libgstreamer1.0-0, libgstreamer-plugins-base1.0-0"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 sudo apt-get update && sudo apt-get install -y \
@@ -373,23 +311,17 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 echo "post-install scripts"
-RSTUDIO=rstudio-xenial-1.1.383-amd64.deb
+RSTUDIO=rstudio-xenial-1.1.442-amd64.deb
 wget https://download1.rstudio.org/$RSTUDIO
 sudo dpkg -i $RSTUDIO
 rm $RSTUDIO
 
 
-fi
 
 ###########################################################################
 
 section ">>> docker"
 
-echo "Install docker?"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
@@ -406,18 +338,11 @@ echo "docker installed"
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> sublime-text"
 
-echo "Install sublime-text debian_packages?"
-echo "sublime-text"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 echo "pre-install scripts"
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add
@@ -435,17 +360,11 @@ sudo apt-get update && sudo apt-get install -y \
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> golang"
 
-echo "Install golang?"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
@@ -461,17 +380,11 @@ echo "golang installed"
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> rust-lang"
 
-echo "Install rust-lang?"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
@@ -484,17 +397,11 @@ echo "rust-lang installed"
 
 
 
-fi
 
 ###########################################################################
 
 section ">>> powerline-fonts"
 
-echo "Install powerline-fonts?"
-read -p "Are you sure? " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
 
 
 
@@ -516,4 +423,3 @@ sudo apt-get autoclean
 sudo apt-get clean
 
 
-fi
