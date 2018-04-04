@@ -1,0 +1,639 @@
+
+name: rlang
+config: artful
+platform: ubuntu:17.10
+sections:
+    - name: core
+      type: debian_packages
+      pre_install: |
+        sudo apt-get update && sudo apt-get dist-upgrade -y
+      install:
+        - build-essential
+        - cmake
+        - ncdu
+        - htop
+        - vim
+        - exuberant-ctags
+        - tig
+        - ranger
+        - bmon
+        - pv
+        - rpl
+        - unzip
+        - p7zip-full
+        - open-vm-tools
+      purge:
+        - snapd
+      post_install: |
+        mkdir -p ~/.host-shared
+        # Reset font cache on Linux
+        if command -v fc-cache @>/dev/null ; then
+            echo "Resetting font cache"
+            fc-cache -f $HOME/.fonts
+        fi
+
+    - name: java
+      type: debian_packages
+      install:
+        - default-jdk
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+
+    - name: py_modules
+      type: python_packages
+      install:
+        - wheel
+        - virtualenv
+        - ipython
+        - cython
+        - psycopg2
+        - pgcli
+        - grin
+        - isort
+        - pylint
+        - radon
+        - autopep8
+        - glances
+        - rtichoke
+
+    - name: database
+      type: debian_packages
+      install:
+        - libpq-dev
+        - postgresql-client-9.6
+        - postgresql-9.6
+        - postgresql-contrib-9.6
+        - postgresql-plpython3-9.6
+        - postgresql-9.6-pllua
+        - luajit
+        - postgresql-9.6-pgtap
+        - pgtap
+      post_install: |
+        sudo -u postgres createuser -s $USER
+        sudo -u postgres createdb $USER
+
+    - name: gui
+      type: debian_packages
+      install:
+        - xorg
+        - xserver-xorg-input-all
+        - open-vm-tools-desktop
+        - fonts-dejavu
+        - gnome-icon-theme
+        - awesome
+        - i3
+        - xfce4-terminal
+        - lxappearance
+        - gtk2-engines
+        - conky
+        - scite
+        - gtkorphan
+        - fslint
+        - bleachbit
+
+    - name: latex
+      type: debian_packages
+      install:
+        - pandoc
+        - lmodern
+        - texlive-generic-recommended
+        - texlive-fonts-recommended
+        - texlive-humanities
+        - texlive-latex-extra
+        - texlive-xetex
+        - texinfo
+      purge:
+        - texlive-latex-extra-doc
+        - texlive-pictures-doc
+        - texlive-latex-base-doc
+        - texlive-latex-recommended-doc
+        - texlive-humanities-doc
+
+      post_install: |
+        cd /usr/share/texlive/texmf-dist
+        sudo wget http://mirrors.ctan.org/install/fonts/inconsolata.tds.zip
+        sudo unzip inconsolata.tds.zip
+        sudo rm inconsolata.tds.zip
+        echo "Map zi4.map" | sudo tee --append /usr/share/texlive/texmf-dist/web2c/updmap.cfg
+        sudo mktexlsr
+        sudo updmap-sys
+
+    - name: rlang
+      type: debian_packages
+      install:
+        - fonts-texgyre
+        - libssl-dev
+        - libxml2-dev
+        - libcurl4-openssl-dev
+        - libcairo2-dev
+        - libxt-dev
+        - libssh2-1-dev
+        - r-base
+        - r-base-dev
+        - r-recommended
+
+    - name: rlang-packages
+      type: rlang_packages
+      install:
+        - abind
+        - acepack
+        - AlgDesign
+        - arm
+        - arsenal
+        - ash
+        - assertr
+        - assertthat
+        - backports
+        - base
+        - base64enc
+        - bayesplot
+        - BH
+        - bindr
+        - bindrcpp
+        - bit
+        - bit64
+        - bitops
+        - blob
+        - bookdown
+        - boot
+        - brew
+        - bridgesampling
+        - brms
+        - Brobdingnag
+        - broom
+        - callr
+        - car
+        - carData
+        - caret
+        - caTools
+        - cellranger
+        - checkmate
+        - chron
+        - class
+        - classInt
+        - cli
+        - clipr
+        - clisymbols
+        - cluster
+        - coda
+        - CodeDepends
+        - codetools
+        - coin
+        - colorspace
+        - colourpicker
+        - commonmark
+        - compiler
+        - corrplot
+        - corrr
+        - covr
+        - crayon
+        - crosstalk
+        - curl
+        - CVST
+        - d3heatmap
+        - data.table
+        - data.tree
+        - datasets
+        - DBI
+        - dbplyr
+        - ddalpha
+        - debugme
+        - dendextend
+        - DEoptimR
+        - desc
+        - descriptr
+        - devtools
+        - DiagrammeR
+        - dichromat
+        - digest
+        - dimRed
+        - diptest
+        - docopt
+        - downloader
+        - dplyr
+        - drake
+        - DRR
+        - DT
+        - dtplyr
+        - dtree
+        - dtt
+        - dygraphs
+        - e1071
+        - enc
+        - english
+        - evaluate
+        - evtree
+        - extraDistr
+        - extrafont
+        - extrafontdb
+        - feather
+        - flexdashboard
+        - flexmix
+        - flextable
+        - forcats
+        - foreach
+        - forecast
+        - foreign
+        - formatR
+        - formattable
+        - Formula
+        - fpc
+        - fracdiff
+        - future
+        - future.apply
+        - gclus
+        - gdata
+        - gdtools
+        - gender
+        - geosphere
+        - ggalt
+        - ggcorrplot
+        - ggedit
+        - ggExtra
+        - ggfittext
+        - ggfortify
+        - ggiraph
+        - ggmap
+        - ggplot2
+        - ggrepel
+        - ggridges
+        - ggthemes
+        - ggvis
+        - gh
+        - gistr
+        - git2r
+        - globals
+        - glue
+        - Gmedian
+        - gmodels
+        - gower
+        - GPArotation
+        - gplots
+        - graphics
+        - grDevices
+        - grid
+        - gridExtra
+        - gtable
+        - gtools
+        - haven
+        - heatmaply
+        - hexbin
+        - highcharter
+        - highr
+        - Hmisc
+        - hms
+        - hrbrthemes
+        - htmlTable
+        - htmltools
+        - htmlwidgets
+        - httpuv
+        - httr
+        - hunspell
+        - igraph
+        - import
+        - influenceR
+        - ini
+        - inline
+        - inum
+        - ipred
+        - IRdisplay
+        - IRkernel
+        - irlba
+        - ISOcodes
+        - iterators
+        - janeaustenr
+        - janitor
+        - jpeg
+        - jsonlite
+        - kableExtra
+        - kernlab
+        - KernSmooth
+        - knitr
+        - labeling
+        - labelled
+        - labelVector
+        - later
+        - lattice
+        - latticeExtra
+        - lava
+        - lazyeval
+        - leaflet
+        - lexicon
+        - libcoin
+        - lintr
+        - listenv
+        - lme4
+        - lmtest
+        - loo
+        - lubridate
+        - magrittr
+        - mapproj
+        - maps
+        - maptools
+        - markdown
+        - MASS
+        - Matrix
+        - MatrixModels
+        - matrixStats
+        - mclust
+        - mcmc
+        - MCMCpack
+        - memoise
+        - methods
+        - metricsgraphics
+        - mgcv
+        - mime
+        - miniUI
+        - minqa
+        - mnormt
+        - ModelMetrics
+        - modelr
+        - modeltools
+        - multcomp
+        - munsell
+        - mvtnorm
+        - networkD3
+        - NeuralNetTools
+        - nleqslv
+        - nlme
+        - nloptr
+        - NLP
+        - nnet
+        - numDeriv
+        - officer
+        - openNLP
+        - openNLPdata
+        - openssl
+        - openxlsx
+        - ore
+        - packrat
+        - pander
+        - parallel
+        - party
+        - partykit
+        - pbdZMQ
+        - pbkrtest
+        - pillar
+        - pixiedust
+        - pkgconfig
+        - PKI
+        - plan
+        - plogr
+        - plotly
+        - plotrix
+        - plyr
+        - png
+        - polycor
+        - pool
+        - prabclus
+        - praise
+        - prettydoc
+        - prettyunits
+        - processx
+        - prodlim
+        - proj4
+        - projmanr
+        - prophet
+        - proto
+        - pryr
+        - psych
+        - purrr
+        - qap
+        - qcc
+        - qdap
+        - qdapDictionaries
+        - qdapRegex
+        - qdapTools
+        - qicharts2
+        - quadprog
+        - quantmod
+        - quantreg
+        - questionr
+        - R.methodsS3
+        - R.oo
+        - R.utils
+        - R6
+        - radiant
+        - radiant.basics
+        - radiant.data
+        - radiant.design
+        - radiant.model
+        - radiant.multivariate
+        - randomForest
+        - ranger
+        - raster
+        - rbokeh
+        - RColorBrewer
+        - Rcpp
+        - RcppArmadillo
+        - RcppEigen
+        - RcppRoll
+        - RCurl
+        - readr
+        - readxl
+        - recipes
+        - registry
+        - rematch
+        - rematch2
+        - reportr
+        - reports
+        - repr
+        - reprex
+        - reshape2
+        - reticulate
+        - revealjs
+        - rex
+        - rezr
+        - rezreport
+        - rgexf
+        - RgoogleMaps
+        - rhandsontable
+        - rio
+        - rJava
+        - rjson
+        - RJSONIO
+        - rlang
+        - rlist
+        - rmarkdown
+        - rmdformats
+        - rmdshower
+        - robustbase
+        - ROCR
+        - Rook
+        - roxygen2
+        - rpart
+        - rpart.plot
+        - rpivotTable
+        - RPostgres
+        - RPostgreSQL
+        - rprojroot
+        - rsconnect
+        - RSpectra
+        - rstan
+        - rstanarm
+        - rstantools
+        - rstudioapi
+        - Rttf2pt1
+        - rvest
+        - rvg
+        - sandwich
+        - scales
+        - selectr
+        - seriation
+        - servr
+        - sfsmisc
+        - shiny
+        - shinyAce
+        - shinyBS
+        - shinydashboard
+        - shinyjs
+        - shinystan
+        - shinythemes
+        - sinew
+        - slam
+        - slidify
+        - slidifyLibraries
+        - snakecase
+        - SnowballC
+        - sos
+        - sourcetools
+        - sp
+        - SparseM
+        - spatial
+        - splines
+        - SQUAREM
+        - StanHeaders
+        - stats
+        - stats4
+        - stopwords
+        - storr
+        - stringdist
+        - stringi
+        - stringr
+        - strucchange
+        - styler
+        - survival
+        - syuzhet
+        - tables
+        - tcltk
+        - tendr
+        - testthat
+        - textclean
+        - textshape
+        - TH.data
+        - threejs
+        - tibble
+        - tidyr
+        - tidyselect
+        - tidytext
+        - tidyverse
+        - timeDate
+        - timelineS
+        - timevis
+        - tint
+        - tinytex
+        - tm
+        - tokenizers
+        - tools
+        - tree
+        - treemapify
+        - trimcluster
+        - tseries
+        - TSP
+        - TTR
+        - tufte
+        - usethis
+        - utf8
+        - utils
+        - uuid
+        - variables
+        - vcd
+        - venneuler
+        - viridis
+        - viridisLite
+        - visNetwork
+        - visreg
+        - vistime
+        - waffle
+        - webshot
+        - wesanderson
+        - whisker
+        - widyr
+        - withr
+        - wordcloud
+        - WordR
+        - xaringan
+        - xfun
+        - xgboost
+        - xlsx
+        - xlsxjars
+        - XML
+        - xml2
+        - xmlparsedata
+        - xtable
+        - xts
+        - yaml
+        - zip
+        - zoo
+
+
+    - name: rstudio
+      type: debian_packages
+      install:
+          - libjpeg62
+          - libgstreamer1.0-0
+          - libgstreamer-plugins-base1.0-0
+      post_install: |
+        RSTUDIO=rstudio-xenial-1.1.442-amd64.deb
+        wget https://download1.rstudio.org/$RSTUDIO
+        sudo dpkg -i $RSTUDIO
+        rm $RSTUDIO
+
+    - name: docker
+      type: bash
+      install: |
+        DOCKER=get-docker.sh
+        curl -fsSL get.docker.com -o $DOCKER
+        sudo sh $DOCKER
+        sudo usermod -aG docker $USER
+        rm $DOCKER
+
+    - name: sublime-text
+      type: debian_packages
+      pre_install: |
+        wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add
+        sudo apt-get install apt-transport-https
+        echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
+      install:
+          - sublime-text
+
+    - name: golang
+      type: bash
+      install: |
+        GOLANG=go1.9.2.linux-amd64.tar.gz
+        wget https://redirector.gvt1.com/edgedl/go/$GOLANG
+        sudo tar -C /usr/local -xzf $GOLANG
+        rm -rf $GOLANG
+
+    - name: rust-lang
+      type: bash
+      install: |
+        curl https://sh.rustup.rs -sSf | sh
+
+    - name: powerline-fonts
+      type: bash
+      install: |
+        git clone https://github.com/powerline/fonts.git --depth=1
+        cd fonts
+        ./install.sh
+        cd ..
+        rm -rf fonts
+      post_install: |
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        sudo apt-get clean

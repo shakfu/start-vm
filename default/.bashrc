@@ -99,13 +99,14 @@ alias ll='ls -lh'
 alias la='ls -A'
 alias l='ls -CF'
 
-#alias p='vim +NERDTree'
+alias r='rtichoke'
+alias p='vim +NERDTree'
 alias c='clear'                             # clear screen
 alias f='find | grep'                       # quick file search
 alias sps='ps aux | grep -v grep | grep'    # search processes
 alias free='free -m'                        # show free mem in mb
 alias path='echo -e ${PATH//:/\\n}'
-alias ncduv='cd / && sudo ncdu --exclude=/mnt/hgfs/*' 
+alias ncduv='cd / && sudo ncdu --exclude=/home/sa/.host-shared'
 
 # interactive line wrapping
 alias i='ipython -i'
@@ -113,11 +114,12 @@ alias lpsql="psql -L ~/psql.log"
 #alias git='hub'
 alias gitlog='git log --pretty=oneline --abbrev-commit'
 alias mp3get='youtube-dl --extract-audio --audio-format mp3'
+alias outdated='sudo -H pip list --format=columns --outdated'
 
 # Computer cleanup
 alias cleanup='sudo apt-get -y autoclean && sudo apt-get -y autoremove && sudo apt-get -y clean && sudo apt-get -y remove && sudo deborphan | xargs sudo apt-get -y remove --purge'
 # purge configuration files of removed packages on debian systems
-alias configpurge="sudo aptitude purge `dpkg --get-selections | grep deinstall | awk '{print $1}'`"	
+alias configpurge="sudo aptitude purge `dpkg --get-selections | grep deinstall | awk '{print $1}'`"
 # remove all unused Linux Kernel headers, images & modules
 alias kernelcleanup="dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/")"'/d;s/^[^ ]* [^ ]* \([^ ]*\).*/\1/;/[0-9]/!d' | xargs sudo apt-get -y purge"
 alias orphaned='sudo deborphan | xargs sudo apt-get -y remove --purge'
@@ -156,11 +158,18 @@ if [ -f /etc/bash_completion ]; then
 fi
 
 # setup virtualenvs and pip
-export JAVA_HOME=/usr/lib/jvm/default-java
+#export JAVA_HOME=/usr/lib/jvm/default-java
 export GOPATH="$HOME/projects/gocode"
 export EDITOR=vi
 export BROWSER=/usr/bin/firefox
 export PATH="$HOME/bin:$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/go/bin:$GOPATH/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/lib/R/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/default-java/jre/lib/amd64/server"
+
+# fix keyboard layout for macbook pro on ubuntu server
+xmodmap -e "keycode 49 = section plusminus section plusminus section plusminus"
+xmodmap -e "keycode 94 = grave asciitilde grave asciitilde dead_grave dead_horn"
+
+
 
 # functions
 e() {
@@ -323,10 +332,5 @@ function ptestkill {
 
 # clean non-essential files
 function clean {
-    find . \( -name \*.pyc -o -name \*.pyo -o -name \*.DS_Store -o -name __pycache__ \) -prune -exec rm -rf {} + 
+    find . \( -name \*.pyc -o -name \*.pyo -o -name \*.DS_Store -o -name __pycache__ \) -prune -exec rm -rf {} +
 }
-
-
-
-
-
