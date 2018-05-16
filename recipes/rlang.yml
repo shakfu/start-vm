@@ -65,13 +65,13 @@ sections:
       type: debian_packages
       install:
         - libpq-dev
-        - postgresql-client-9.6
-        - postgresql-9.6
-        - postgresql-contrib-9.6
-        - postgresql-plpython3-9.6
-        - postgresql-9.6-pllua
+        - postgresql-client-10
+        - postgresql-10
+        - postgresql-contrib-10
+        - postgresql-plpython3-10
+        - postgresql-10-pllua
         - luajit
-        - postgresql-9.6-pgtap
+        - postgresql-10-pgtap
         - pgtap
       post_install: |
         sudo -u postgres createuser -s $USER
@@ -123,7 +123,7 @@ sections:
         sudo mktexlsr
         sudo updmap-sys
 
-    - name: rlang
+    - name: rlang-debian
       type: debian_packages
       install:
         - fonts-texgyre
@@ -137,449 +137,299 @@ sections:
         - r-base-dev
         - r-recommended
 
-    - name: rlang-packages
+    - name: rlang-bayesian
       type: rlang_packages
       install:
-        - abind
-        - acepack
-        - AlgDesign
-        - arm
-        - arsenal
-        - ash
-        - assertr
-        - assertthat
-        - backports
-        - base
-        - base64enc
         - bayesplot
-        - BH
-        - bindr
-        - bindrcpp
-        - bit
-        - bit64
-        - bitops
-        - blob
-        - bookdown
-        - boot
-        - brew
         - bridgesampling
         - brms
-        - Brobdingnag
-        - broom
-        - callr
-        - car
-        - carData
-        - caret
-        - caTools
-        - cellranger
-        - checkmate
-        - chron
-        - class
-        - classInt
-        - cli
-        - clipr
-        - clisymbols
-        - cluster
         - coda
-        - CodeDepends
-        - codetools
-        - coin
-        - colorspace
-        - colourpicker
-        - commonmark
-        - compiler
+        - rstan
+        - rstanarm
+        - rstantools
+        - MCMCpack
+
+    - name: rlang-regression
+      type: rlang_packages
+      install:
+        - arm
+        - car
+        - caret
+        - e1071
+        - lme4
+        - lmtest
+        - visreg
+        - Boruta
+
+
+    - name: rlang-clustering
+      type: rlang_packages
+      install:
+        # - cluster
+        - fpc
+        - gclus
+        - trimcluster
+
+    - name: rlang-decision-trees
+      type: rlang_packages
+      install:
+        - dtree
+        # - rpart
+        - rpart.plot
+        - party
+        - partykit
+        - randomForest
+        - ranger
+        - tree
+
+    - name: rlang-graphs
+      type: rlang_packages
+      install:
+        - DiagrammeR
+        - ggiraph
+        - igraph
+        - influenceR
+        - visNetwork
+        - networkD3
+
+    - name: rlang-jupyter
+      type: rlang_packages
+      install:
+        - IRkernel
+
+    - name: rlang-forecast
+      type: rlang_packages
+      install:
+        - forecast
+        - prophet
+        - tseries
+        - xts
+        - zoo
+
+    - name: rlang-microsoft
+      type: rlang_packages
+      install:
+        - officer
+        - openxlsx
+        - WordR
+        - rvg
+
+    - name: rlang-text
+      type: rlang_packages
+      install:
+        - tm
+        - qdap
+
+    - name: rlang-map
+      type: rlang_packages
+      install:
+        - leaflet
+        - geosphere
+        - mapproj
+        - maps
+        - maptools
+        - RgoogleMaps
+        - ggmap
+
+    - name: rlang-gantt
+      type: rlang_packages
+      install:
+        - plan
+        - projmanr
+        - plotrix
+        - timelineS
+        - timevis
+        - vistime
+
+    - name: rlang-visual
+      type: rlang_packages
+      install:
         - corrplot
         - corrr
-        - covr
-        - crayon
-        - crosstalk
-        - curl
-        - CVST
         - d3heatmap
-        - data.table
-        - data.tree
-        - datasets
-        - DBI
-        - dbplyr
-        - ddalpha
-        - debugme
-        - dendextend
-        - DEoptimR
-        - desc
-        - descriptr
-        - devtools
-        - DiagrammeR
-        - dichromat
-        - digest
-        - dimRed
-        - diptest
-        - docopt
-        - downloader
-        - dplyr
-        - drake
-        - DRR
-        - DT
-        - dtplyr
-        - dtree
-        - dtt
         - dygraphs
-        - e1071
-        - enc
-        - english
-        - evaluate
-        - evtree
-        - extraDistr
-        - extrafont
-        - extrafontdb
-        - feather
-        - flexdashboard
-        - flexmix
-        - flextable
-        - forcats
-        - foreach
-        - forecast
-        - foreign
-        - formatR
-        - formattable
-        - Formula
-        - fpc
-        - fracdiff
-        - future
-        - future.apply
-        - gclus
-        - gdata
-        - gdtools
-        - gender
-        - geosphere
         - ggalt
         - ggcorrplot
         - ggedit
         - ggExtra
         - ggfittext
         - ggfortify
-        - ggiraph
-        - ggmap
         - ggplot2
         - ggrepel
         - ggridges
         - ggthemes
         - ggvis
-        - gh
-        - gistr
-        - git2r
-        - globals
-        - glue
-        - Gmedian
-        - gmodels
-        - gower
-        - GPArotation
         - gplots
-        - graphics
-        - grDevices
         - grid
         - gridExtra
         - gtable
-        - gtools
-        - haven
         - heatmaply
-        - hexbin
         - highcharter
-        - highr
-        - Hmisc
-        - hms
-        - hrbrthemes
-        - htmlTable
-        - htmltools
-        - htmlwidgets
-        - httpuv
-        - httr
-        - hunspell
-        - igraph
-        - import
-        - influenceR
-        - ini
-        - inline
-        - inum
-        - ipred
-        - IRdisplay
-        - IRkernel
-        - irlba
-        - ISOcodes
-        - iterators
-        - janeaustenr
-        - janitor
-        - jpeg
-        - jsonlite
-        - kableExtra
-        - kernlab
-        - KernSmooth
-        - knitr
-        - labeling
-        - labelled
-        - labelVector
-        - later
-        - lattice
-        - latticeExtra
-        - lava
-        - lazyeval
-        - leaflet
-        - lexicon
-        - libcoin
-        - lintr
-        - listenv
-        - lme4
-        - lmtest
-        - loo
-        - lubridate
-        - magrittr
-        - mapproj
-        - maps
-        - maptools
-        - markdown
-        - MASS
-        - Matrix
-        - MatrixModels
-        - matrixStats
-        - mclust
-        - mcmc
-        - MCMCpack
-        - memoise
-        - methods
         - metricsgraphics
-        - mgcv
-        - mime
-        - miniUI
-        - minqa
-        - mnormt
-        - ModelMetrics
-        - modelr
-        - modeltools
-        - multcomp
-        - munsell
-        - mvtnorm
-        - networkD3
-        - NeuralNetTools
-        - nleqslv
-        - nlme
-        - nloptr
-        - NLP
-        - nnet
-        - numDeriv
-        - officer
-        - openNLP
-        - openNLPdata
-        - openssl
-        - openxlsx
-        - ore
-        - packrat
-        - pander
-        - parallel
-        - party
-        - partykit
-        - pbdZMQ
-        - pbkrtest
-        - pillar
-        - pixiedust
-        - pkgconfig
-        - PKI
-        - plan
-        - plogr
         - plotly
-        - plotrix
-        - plyr
-        - png
-        - polycor
-        - pool
-        - prabclus
-        - praise
-        - prettydoc
-        - prettyunits
-        - processx
-        - prodlim
-        - proj4
-        - projmanr
-        - prophet
-        - proto
-        - pryr
-        - psych
-        - purrr
-        - qap
         - qcc
-        - qdap
-        - qdapDictionaries
-        - qdapRegex
-        - qdapTools
         - qicharts2
-        - quadprog
-        - quantmod
-        - quantreg
-        - questionr
-        - R.methodsS3
-        - R.oo
-        - R.utils
-        - R6
-        - radiant
-        - radiant.basics
-        - radiant.data
-        - radiant.design
-        - radiant.model
-        - radiant.multivariate
-        - randomForest
-        - ranger
-        - raster
         - rbokeh
         - RColorBrewer
-        - Rcpp
-        - RcppArmadillo
-        - RcppEigen
-        - RcppRoll
-        - RCurl
-        - readr
-        - readxl
-        - recipes
-        - registry
-        - rematch
-        - rematch2
-        - reportr
-        - reports
-        - repr
-        - reprex
-        - reshape2
-        - reticulate
-        - revealjs
-        - rex
-        - rezr
-        - rezreport
-        - rgexf
-        - RgoogleMaps
-        - rhandsontable
-        - rio
-        - rJava
-        - rjson
-        - RJSONIO
-        - rlang
-        - rlist
-        - rmarkdown
-        - rmdformats
-        - rmdshower
-        - robustbase
-        - ROCR
-        - Rook
-        - roxygen2
-        - rpart
-        - rpart.plot
-        - rpivotTable
-        - RPostgres
-        - RPostgreSQL
-        - rprojroot
-        - rsconnect
-        - RSpectra
-        - rstan
-        - rstanarm
-        - rstantools
-        - rstudioapi
-        - Rttf2pt1
-        - rvest
-        - rvg
-        - sandwich
         - scales
-        - selectr
-        - seriation
-        - servr
-        - sfsmisc
-        - shiny
-        - shinyAce
-        - shinyBS
-        - shinydashboard
-        - shinyjs
-        - shinystan
-        - shinythemes
-        - sinew
-        - slam
-        - slidify
-        - slidifyLibraries
-        - snakecase
-        - SnowballC
-        - sos
-        - sourcetools
-        - sp
-        - SparseM
-        - spatial
-        - splines
-        - SQUAREM
-        - StanHeaders
-        - stats
-        - stats4
-        - stopwords
-        - storr
-        - stringdist
-        - stringi
-        - stringr
-        - strucchange
-        - styler
-        - survival
-        - syuzhet
-        - tables
-        - tcltk
-        - tendr
-        - testthat
-        - textclean
-        - textshape
-        - TH.data
         - threejs
-        - tibble
-        - tidyr
-        - tidyselect
-        - tidytext
-        - tidyverse
-        - timeDate
-        - timelineS
-        - timevis
-        - tint
-        - tinytex
-        - tm
-        - tokenizers
-        - tools
-        - tree
         - treemapify
-        - trimcluster
-        - tseries
-        - TSP
-        - TTR
-        - tufte
-        - usethis
-        - utf8
-        - utils
-        - uuid
-        - variables
         - vcd
         - venneuler
         - viridis
         - viridisLite
-        - visNetwork
-        - visreg
-        - vistime
         - waffle
-        - webshot
         - wesanderson
-        - whisker
+
+    - name: rlang-tidyverse
+      type: rlang_packages
+      install:
+        - tidyverse
+        - dplyr
+        - dtplyr
+        - forcats
+        - glue
+        - purrr
+        - readr
+        - readxl
+        - reshape2
+        - rlang
+        - stringr
+        - tibble
+        - tidyr
+        - tidyselect
+        - usethis
         - widyr
         - withr
-        - wordcloud
-        - WordR
+
+
+    - name: rlang-modelling
+      type: rlang_packages
+      install:
+        - broom
+        - gmodels
+        - modelr
+        - modeltools
+        - recipes
+
+    - name: rlang-reporting
+      type: rlang_packages
+      install:
+        - bookdown
+        - brew
+        - DT
+        - flexdashboard
+        - flextable
+        - formattable
+        - hrbrthemes
+        - htmlTable
+        - htmltools
+        - htmlwidgets
+        - janitor
+        - kableExtra
+        - knitr
+        - labeling
+        - pander
+        - pixiedust
+        - prettydoc
+        - prettyunits
+        - revealjs
+        - rhandsontable
+        - rmarkdown
+        - rmdformats
+        - rmdshower
+        - rpivotTable
+        - tables
+        - tint
+        - tufte
         - xaringan
-        - xfun
-        - xgboost
-        - xlsx
-        - xlsxjars
-        - XML
-        - xml2
-        - xmlparsedata
         - xtable
-        - xts
+        - wordcloud
+
+
+    - name: rlang-testing
+      type: rlang_packages
+      install:
+        - assertr
+        - assertthat
+        - covr
+        - testthat
+
+    - name: rlang-pkg
+      type: rlang_packages
+      install:
+        - devtools
+        - formatR
+        - lintr
+        - packrat
+        - roxygen2
+        - sinew
+        - styler
+
+    - name: rlang-shiny
+      type: rlang_packages
+      install:
+        - shiny
+        - shinyBS
+        - shinydashboard
+        - shinyjs
+        - shinythemes
+
+    - name: rlang-db
+      type: rlang_packages
+      install:
+        - DBI
+        - dbplyr
+        - pool
+        - RPostgres
+
+    - name: rlang-text
+      type: rlang_packages
+      install:
+        - snakecase
+        - stringdist
+        - stringi
+        - textclean
+        - tidytext
+        - whisker
+        - crayon
+
+    - name: rlang-net
+      type: rlang_packages
+      install:
+        - httr
+        - RCurl
+        - servr
+
+    - name: rlang-datastructures
+      type: rlang_packages
+      install:
+        - data.table
+        - data.tree
+        - jsonlite
+        - reticulate
         - yaml
-        - zip
-        - zoo
+
+    - name: rlang-misctools
+      type: rlang_packages
+      install:
+        - gdata
+        - gtools
+        - Hmisc
+        - psych
+        - arsenal
+        - descriptr
+
+    - name: rlang-time
+      type: rlang_packages
+      install:
+        - hms
+        - lubridate
+
+    - name: rlang-core
+      type: rlang_packages
+      install:
+        - docopt
 
 
     - name: rstudio

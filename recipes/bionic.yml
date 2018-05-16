@@ -137,6 +137,7 @@ sections:
         - r-base-dev
         - r-recommended
 
+
     - name: rlang-bayesian
       type: rlang_packages
       install:
@@ -159,6 +160,7 @@ sections:
         - lme4
         - lmtest
         - visreg
+        - Boruta
 
 
     - name: rlang-clustering
@@ -210,6 +212,8 @@ sections:
       install:
         - officer
         - openxlsx
+        - WordR
+        - rvg
 
     - name: rlang-text
       type: rlang_packages
@@ -231,13 +235,12 @@ sections:
     - name: rlang-gantt
       type: rlang_packages
       install:
-          - plan
-          - projmanr
-          - plotrix
-          - timelineS
-          - timevis
-          - vistime
-
+        - plan
+        - projmanr
+        - plotrix
+        - timelineS
+        - timevis
+        - vistime
 
     - name: rlang-visual
       type: rlang_packages
@@ -269,6 +272,7 @@ sections:
         - qicharts2
         - rbokeh
         - RColorBrewer
+        - scales
         - threejs
         - treemapify
         - vcd
@@ -278,16 +282,6 @@ sections:
         - waffle
         - wesanderson
 
-
-    - name: rlang-report
-      type: rlang_packages
-      install:
-        - bookdown
-        - flexdashboard
-        - flextable
-        - formattable
-
-
     - name: rlang-tidyverse
       type: rlang_packages
       install:
@@ -296,168 +290,147 @@ sections:
         - dtplyr
         - forcats
         - glue
+        - purrr
+        - readr
+        - readxl
+        - reshape2
+        - rlang
         - stringr
         - tibble
         - tidyr
-        - purrr
-        - readr
+        - tidyselect
+        - usethis
+        - widyr
+        - withr
 
 
-    - name: rlang-core
+    - name: rlang-modelling
       type: rlang_packages
       install:
-        - arsenal
-        - assertr
-        - assertthat
-        - brew
         - broom
-
-        - covr
-        - crayon
-
-        - data.table
-        - data.tree
-
-        - DBI
-        - dbplyr
-
-        - descriptr
-        - devtools
-
-        - docopt
-
-        - DT
-
-        - formatR
-
-
-        - gdata
-
-
-
-
         - gmodels
+        - modelr
+        - modeltools
+        - recipes
 
-
-
-        - gtools
-
-
-        - Hmisc
-        - hms
+    - name: rlang-reporting
+      type: rlang_packages
+      install:
+        - bookdown
+        - brew
+        - DT
+        - flexdashboard
+        - flextable
+        - formattable
         - hrbrthemes
         - htmlTable
         - htmltools
         - htmlwidgets
-
-        - httr
-
         - janitor
-        - jsonlite
         - kableExtra
-
         - knitr
         - labeling
-
-        - lintr
-
-        - lubridate
-
-
-        - modelr
-        - modeltools
-
-        - packrat
         - pander
-
         - pixiedust
-
-
-
-        - pool
-
         - prettydoc
         - prettyunits
-
-        - proto
-        - pryr
-        - psych
-
-        - radiant
-
-        - RCurl
-
-        - readxl
-        - recipes
-
-        - reshape2
-        - reticulate
         - revealjs
-
-
         - rhandsontable
-        - rlang
         - rmarkdown
         - rmdformats
         - rmdshower
-        - roxygen2
-
         - rpivotTable
-        - RPostgres
+        - tables
+        - tint
+        - tufte
+        - xaringan
+        - xtable
+        - wordcloud
 
-        - rvg
-        - scales
 
-        - servr
+    - name: rlang-testing
+      type: rlang_packages
+      install:
+        - assertr
+        - assertthat
+        - covr
+        - testthat
 
+    - name: rlang-pkg
+      type: rlang_packages
+      install:
+        - devtools
+        - formatR
+        - lintr
+        - packrat
+        - roxygen2
+        - sinew
+        - styler
+
+    - name: rlang-shiny
+      type: rlang_packages
+      install:
         - shiny
         - shinyBS
         - shinydashboard
         - shinyjs
         - shinythemes
 
-        - sinew
+    - name: rlang-db
+      type: rlang_packages
+      install:
+        - DBI
+        - dbplyr
+        - pool
+        - RPostgres
 
+    - name: rlang-text
+      type: rlang_packages
+      install:
         - snakecase
-
-        - storr
         - stringdist
         - stringi
-
-        - styler
-
-        - tables
-
-        - testthat
         - textclean
-        - TH.data
-
-
-        - tidyselect
         - tidytext
-
-
-        - tint
-
-
-
-        - tufte
-        - usethis
-
-
-
         - whisker
-        - widyr
-        - withr
-        - wordcloud
-        - WordR
-        - xaringan
+        - crayon
 
+    - name: rlang-net
+      type: rlang_packages
+      install:
+        - httr
+        - RCurl
+        - servr
 
-        - xtable
+    - name: rlang-datastructures
+      type: rlang_packages
+      install:
+        - data.table
+        - data.tree
+        - jsonlite
+        - reticulate
         - yaml
 
+    - name: rlang-misctools
+      type: rlang_packages
+      install:
+        - gdata
+        - gtools
+        - Hmisc
+        - psych
+        - arsenal
+        - descriptr
 
+    - name: rlang-time
+      type: rlang_packages
+      install:
+        - hms
+        - lubridate
+
+    - name: rlang-core
+      type: rlang_packages
+      install:
+        - docopt
 
     - name: rstudio
       type: debian_packages
