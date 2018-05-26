@@ -311,6 +311,7 @@ sections:
         - modelr
         - modeltools
         - recipes
+        - dataPreparation
 
     - name: rlang-reporting
       type: rlang_packages
@@ -401,7 +402,7 @@ sections:
         - RCurl
         - servr
 
-    - name: rlang-datastructures
+    - name: rlang-protocols
       type: rlang_packages
       install:
         - data.table
@@ -409,6 +410,12 @@ sections:
         - jsonlite
         - reticulate
         - yaml
+
+    - name: rlang-quant
+      type: rlang_packages
+      install:
+        - tidyquant
+        - Quandl
 
     - name: rlang-misctools
       type: rlang_packages

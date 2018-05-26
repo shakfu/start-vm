@@ -54,6 +54,10 @@ def main():
     # update
     update = subparsers.add_parser('update', help='update packages')
 
+    # remove
+    remove = subparsers.add_parser('remove', help='remove packages')
+    remove.add_argument('package', nargs="+", help='packages to install')
+
     args = parser.parse_args()
 
     # print(args)
@@ -66,6 +70,11 @@ def main():
     if args.command == 'update':
         log.info('UPDATE')
         srcmd(f"update.packages(ask=F, repos=c('{REPO}'))")
+
+    if args.command == 'remove':
+        log.info('REMOVE')
+        packages = str(args.package).lstrip('[').rstrip(']')
+        srcmd(f"remove.packages(c({packages}))")
 
 
 if __name__ == '__main__':
