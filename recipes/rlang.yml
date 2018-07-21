@@ -411,11 +411,12 @@ sections:
         - reticulate
         - yaml
 
-    - name: rlang-quant
+    - name: rlang-finance
       type: rlang_packages
       install:
         - tidyquant
         - Quandl
+        - finreportr
 
     - name: rlang-misctools
       type: rlang_packages
