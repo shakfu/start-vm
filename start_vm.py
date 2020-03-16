@@ -70,7 +70,7 @@ class Builder(ABC):
         recipe = None
         with self.recipe_yml.open() as fopen:
             content = fopen.read()
-            recipe = yaml.load(content)
+            recipe = yaml.load(content, Loader=yaml.SafeLoader)
         return recipe
 
     @property
