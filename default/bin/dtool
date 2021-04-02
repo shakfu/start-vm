@@ -13,11 +13,7 @@ import six
 # ----------------------------------------------------------
 DEBUG=True
 
-if DEBUG:
-    LOG_LEVEL = logging.DEBUG
-else:
-    LOG_LEVEL = logging.INFO
-
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 LOG_FORMAT = '%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s'
 logging.basicConfig(level=LOG_LEVEL,
                     format=LOG_FORMAT,
@@ -90,14 +86,14 @@ class Logger(object):
     def level(self, value):
         """Set logging level.
         """
-        log_level = {
-            'debug': logging.DEBUG,        # 10
-            'info': logging.INFO,          # 20
-            'warn': logging.WARN,          # 30
-            'error': logging.ERROR,        # 40
-            'critical': logging.CRITICAL,  # 50
-        }
         if isinstance(value, str):
+            log_level = {
+                'debug': logging.DEBUG,        # 10
+                'info': logging.INFO,          # 20
+                'warn': logging.WARN,          # 30
+                'error': logging.ERROR,        # 40
+                'critical': logging.CRITICAL,  # 50
+            }
             assert value in log_level, 'level not implemented'
             self.log.parent.setLevel(log_level[value])
         elif isinstance(value, int):

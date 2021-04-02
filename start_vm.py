@@ -10,6 +10,7 @@ features:
 
 """
 
+
 import logging
 import os
 import pathlib
@@ -22,11 +23,7 @@ import yaml
 
 DEBUG = True
 
-if DEBUG:
-    LOG_LEVEL = logging.DEBUG
-else:
-    LOG_LEVEL = logging.INFO
-
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 LOG_FORMAT = '%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s'
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, stream=sys.stdout)
 
@@ -88,8 +85,7 @@ class Builder(ABC):
     def write_file(self, data):
         """Write setup file with options."""
         if self.options.strip:
-            data = '\n'.join(
-                [line for line in data.split('\n') if line.strip()])
+            data = '\n'.join(line for line in data.split('\n') if line.strip())
         path = self.setup / self.target
         self.log.info('writing %s', path)
         with path.open('w') as fopen:
