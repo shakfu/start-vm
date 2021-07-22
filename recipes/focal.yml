@@ -1,82 +1,5 @@
-# start-vm: 1 step setups for fresh machines
 
-Generates bash scripts from yaml `recipe` files for 1-step setup of linux-based virtual or physical machines.
-
-Do **NOT** use on a pre-existing installation as this program may well over-write your files. You have been warned!
-
-## Features
-
-- Generation of bash setup scripts in one of two modes:
-
-    1. Auto-mode: without asking for permission (default)
-
-    2. Conditional mode: asks for permission to install at each step.
-
-- Auto-run script after generation
-
-
-## Basic Usage
-
-### Clone and Install
-
-Install a fresh ubuntu server 20.04 LTS distro on a virtual or physical machine engine and then:
-
-```
-$ git clone https://github.com/shakfu/start-vm
-
-$ cd start-vm
-
-$ ./setup/ubuntu_20.04_focal.sh
-```
-
-### Clone, Generate and Install
-
-To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
-
-```
-$ start_vm.py --bashfile --conditional recipes/<recipe>.yml
-```
-
-The generated bash recipe files are created in the `setup` folder
-
-**IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME`.
-
-What is copied out of config is a function of which recipe is used such that *everything* in `config/<recipe>` is copied into `$HOME/.config`.
-
-A minimal ubuntu 16.04 LTS `base.yml` is implemented. Forks and pull requests for other variations are of course wellcome.
-
-Future plans include the generation of Dockerfiles from `<recipe>.yml` files.
-
-## Command-line Usage
-
-```
-usage: start_vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
-                   [--executable]
-                   recipe [recipe ...]
-
-Install Packages
-
-positional arguments:
-  recipe             recipes to install
-
-optional arguments:
-  -h, --help         show this help message and exit
-  --docker, -d       generate dockerfile
-  --bash, -b         generate bash file
-  --conditional, -c  add conditional steps
-  --run, -r          run bash file
-  --strip, -s        strip empty lines
-  --executable, -e   make setup file executable
-```
-
-
-## Creating new recipes
-
-Recipe files are yaml files with a certain structure. The easiest way to learn is to just customize the included `base.yml` example:
-
-```yaml
-
-name: rlang
+name: base
 config: disco
 platform: ubuntu:20.04
 sections:
@@ -244,15 +167,3 @@ sections:
         sudo apt-get autoremove
         sudo apt-get autoclean
         sudo apt-get clean
-
-``
-
-
-## Current Implementations
-
-- ubuntu 16.04 LTS
-- ubuntu 17.10
-- ubuntu 17.10 sumo edition
-- ubuntu 19.04
-- ubuntu 19.04 rlang edition
-- ubuntu 20.04 LTS
