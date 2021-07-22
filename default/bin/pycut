@@ -13,15 +13,14 @@ import sys
 def parse_slice(st):
     # st can be 5, 5-, -5, 5-7
     if st.endswith('-'):
-        sl = slice(int(st[:-1])-1, None)
+        return slice(int(st[:-1])-1, None)
     elif st.startswith('-'):
-        sl = slice(None, int(st[1:]))
+        return slice(None, int(st[1:]))
     elif st.count('-'):
         start, stop = st.split('-')
-        sl = slice(int(start)-1, int(stop))
+        return slice(int(start)-1, int(stop))
     else:
-        sl = slice(int(st)-1, int(st))
-    return sl
+        return slice(int(st)-1, int(st))
 
 
 '''read from stream ins, write to outs'''

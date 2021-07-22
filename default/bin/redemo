@@ -95,7 +95,7 @@ class ReDemo:
     def getflags(self):
         flags = 0
         for var in self.vars:
-            flags = flags | var.get()
+            flags |= var.get()
         flags = flags
         return flags
 
@@ -149,7 +149,7 @@ class ReDemo:
                 for i in range(len(groups)):
                     g = "%2d: %r" % (i, groups[i])
                     self.grouplist.insert(END, g)
-            nmatches = nmatches + 1
+            nmatches += 1
             if self.showvar.get() == "first":
                 break
 
