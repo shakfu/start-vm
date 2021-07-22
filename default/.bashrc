@@ -99,7 +99,7 @@ alias ll='ls -lh'
 alias la='ls -A'
 alias l='ls -CF'
 
-alias r='rtichoke'
+alias r='radian'
 alias p='vim +NERDTree'
 alias c='clear'                             # clear screen
 alias f='find | grep'                       # quick file search

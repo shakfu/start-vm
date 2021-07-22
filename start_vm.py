@@ -39,10 +39,13 @@ class Builder(ABC):
     template = ''
     setup = pathlib.Path('setup')
     filters = {
-        'sequence': lambda val: ', '.join(repr(x) for x in val),
-        'nosudo': lambda val: val.replace('sudo', ' &&'),
-        'junction': lambda val: '\n'.join(
-            ' && ' + line + ' \\' for line in val.split('\n') if line),
+        'sequence':
+        lambda val: ', '.join(repr(x) for x in val),
+        'nosudo':
+        lambda val: val.replace('sudo', ' &&'),
+        'junction':
+        lambda val: '\n'.join(' && ' + line + ' \\' for line in val.split('\n')
+                              if line),
     }
 
     def __init__(self, recipe_yml, options=None):
@@ -96,14 +99,15 @@ class Builder(ABC):
             fopen.write(data)
         if self.options.executable:
             flag = path.stat()
-            path.chmod(flag.st_mode |
-                       stat.S_IXUSR |
-                       stat.S_IXGRP |
-                       stat.S_IXOTH)
+            path.chmod(flag.st_mode | stat.S_IXUSR | stat.S_IXGRP
+                       | stat.S_IXOTH)
 
     def run_section(self, name):
         """Run individual section from recipy."""
-        section = [section for section in self.recipe['sections'] if section['name'] == name][0]
+        section = [
+            section for section in self.recipe['sections']
+            if section['name'] == name
+        ][0]
         if section['type'] == 'bash':
             shellcmd = "; ".join(section['install'].splitlines())
             os.system(shellcmd)
@@ -153,10 +157,21 @@ def commandline():
     option('recipe', nargs='+', help='recipes to install')
     option('--docker', '-d', action='store_true', help='generate dockerfile')
     option('--bash', '-b', action='store_true', help='generate bash file')
-    option('--conditional', '-c', action='store_true', help='add conditional steps')
+    option('--conditional',
+           '-c',
+           action='store_true',
+           help='add conditional steps')
     option('--run', '-r', action='store_true', help='run bash file')
-    option('--strip', '-s', default=False, action='store_true', help='strip empty lines')
-    option('--executable', '-e', default=True, action='store_true', help='make setup file executable')
+    option('--strip',
+           '-s',
+           default=False,
+           action='store_true',
+           help='strip empty lines')
+    option('--executable',
+           '-e',
+           default=True,
+           action='store_true',
+           help='make setup file executable')
     option('--section', type=str, help='run section')
     args = parser.parse_args()
 
