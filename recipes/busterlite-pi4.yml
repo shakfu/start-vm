@@ -22,6 +22,7 @@ sections:
         - unzip
         - p7zip-full
         - sqlite3
+        - tmux
 
     - name: gui
       type: debian_packages
