@@ -190,11 +190,9 @@ sudo apt-get update && sudo apt-get install -y \
     pd-ableton-link \
     pd-ambix \
     pd-arraysize \
-    pd-aubio \
     pd-autopreset \
     pd-bassemu \
     pd-beatpipe \
-    pd-blokas \
     pd-boids \
     pd-bsaylor \
     pd-chaos \
@@ -253,7 +251,6 @@ sudo apt-get update && sudo apt-get install -y \
     pd-puremapping \
     pd-purepd \
     pd-purest-json \
-    pd-py \
     pd-readanysf \
     pd-rtclib \
     pd-sigpack \

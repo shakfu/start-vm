@@ -158,15 +158,14 @@ sections:
       install:
         - puredata
         - puredata-dev
-        - pd-3dp         
+        - pd-3dp
         - pd-ableton-link
-        - pd-ambix       
-        - pd-arraysize   
-        - pd-aubio       
-        - pd-autopreset  
-        - pd-bassemu     
-        - pd-beatpipe    
-        - pd-blokas      
+        - pd-ambix
+        - pd-arraysize
+        - pd-autopreset
+        - pd-bassemu
+        - pd-beatpipe  
+        # - pd-blokas
         - pd-boids       
         - pd-bsaylor     
         - pd-chaos       
@@ -225,7 +224,6 @@ sections:
         - pd-puremapping
         - pd-purepd
         - pd-purest-json
-        - pd-py
         - pd-readanysf
         - pd-rtclib
         - pd-sigpack
