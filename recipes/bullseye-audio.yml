@@ -1,6 +1,6 @@
 
-name: pi4
-config: buster
+name: audio
+config: bullseye
 platform: raspbian
 sections:
     - name: core
@@ -30,8 +30,7 @@ sections:
         - xorg
         - xserver-xorg-input-all
         - fonts-dejavu
-        # - awesome
-        - i3
+        - awesome
         - xfce4-terminal
         - lxappearance
         - gtk2-engines
@@ -64,12 +63,15 @@ sections:
       type: debian_packages
       install:
         - sox
+        - ffmpeg
         - libsox-dev
         - libsndfile1-dev
+        - libasound2-dev
         - libportaudio-dev
+        - libportmidi-dev
         - librtaudio-dev
         - librtmidi-dev
-        # - liblo-dev 
+        - liblo-dev
 
     - name: audio_extras
       type: debian_packages
@@ -90,32 +92,23 @@ sections:
 
         # ???
         - gmidimonitor
-        - hexter
         - hydrogen
         - midisnoop
         - pmidi
-
+        - midish
         - qmidiarp
         - qmidinet
         - qmidiroute
-        - seq24
         - vlc
+        - ffmpeg
 
         # ?????
         - ams
         - amsynth
-        - bristol
-        - din
         - freepats
-        - freewheeling
-        - linthesia
         - mididings
         - mma
-        - muse
-        - multimedia-midi
-        - moosic
         - patchage
-        - specimen
         - petri-foo
         - python-ecasound
         - python-mididings
@@ -123,11 +116,7 @@ sections:
         - python-pyknon
         - python-pypm
         - qtractor
-        - rosegarden
         - qmmp
-        - sndio-tools
-        - sndiod
-        - sooperlooper
         - swami
 
 
@@ -140,20 +129,21 @@ sections:
         - python3-mido
         - python3-rtmidi
         - python3-llvmlite
+        - python3-liblo
 
     - name: py_audio2
       type: python_packages
       install:
         - aubio
-        - librosa
+        # - librosa
         # - mido
         - mingus
         - miniaudio
         - music21
-        - pippi
+        # - pippi
         - PyAudio
         - pydub
-        - pyliblo
+        # - pyliblo
         - pyrubberband
         - PySoundFile
         - python-osc
@@ -203,13 +193,6 @@ sections:
         - pd-hexloader   
         - pd-hid         
         - pd-iem         
-        - pd-iemambi     
-        - pd-iemguts     
-        - pd-iemlib      
-        - pd-iemmatrix   
-        - pd-iemnet
-        # - pd-iemtab
-        - pd-iemutils    
         - pd-jmmmp       
         - pd-jsusfx      
         - pd-kollabs     

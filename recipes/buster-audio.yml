@@ -1,0 +1,243 @@
+
+name: audio
+config: buster
+platform: raspbian
+sections:
+    - name: core
+      type: debian_packages
+      pre_install: |
+        sudo apt update && sudo apt dist-upgrade -y
+      install:
+        - build-essential
+        - cmake
+        - ncdu
+        - htop
+        - vim
+        - exuberant-ctags
+        - tig
+        - ranger
+        - bmon
+        - pv
+        - rpl
+        - unzip
+        - p7zip-full
+        - sqlite3
+        - tmux
+
+    - name: gui
+      type: debian_packages
+      install:
+        - xorg
+        - xserver-xorg-input-all
+        - fonts-dejavu
+        - awesome
+        - xfce4-terminal
+        - lxappearance
+        - gtk2-engines
+        - scite
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+
+
+    - name: py_modules
+      type: python_packages
+      install:
+        - wheel
+        - virtualenv
+        - ipython
+        - cython
+        - litecli
+        - grin
+        - isort
+        - pylint
+        - pytest
+        - black
+
+
+    - name: core_audio
+      type: debian_packages
+      install:
+        - sox
+        - ffmpeg
+        - libsox-dev
+        - libsndfile1-dev
+        - libasound2-dev
+        - libportaudio-dev
+        - libportmidi-dev
+        - librtaudio-dev
+        - librtmidi-dev
+        - liblo-dev
+
+    - name: audio_extras
+      type: debian_packages
+      install:
+        - csound
+        - csoundqt
+        - faust
+        - faustworks
+        - fluidsynth
+        - fluid-soundfont-gm
+        - fluid-soundfont-gs
+        - qsynth
+        - timidity
+        - giada
+        - seq24
+        - sonic-pi
+
+
+        # ???
+        - gmidimonitor
+        - hydrogen
+        - midisnoop
+        - pmidi
+        - midish
+        - qmidiarp
+        - qmidinet
+        - qmidiroute
+        - vlc
+
+        # ?????
+        - ams
+        - amsynth
+        - bristol
+        - freepats
+        - mididings
+        - mma
+        - multimedia-midi
+        - patchage
+        - petri-foo
+        - python-ecasound
+        - python-mididings
+        - python-midiutil
+        - python-pyknon
+        - python-pypm
+        - qmmp
+
+
+    - name: py_audio1
+      type: debian_packages
+      install:
+        - python3-pyo
+        - python3-alsaaudio
+        - python3-jack-client
+        - python3-mido
+        - python3-rtmidi
+        - python3-llvmlite
+        - python3-liblo
+
+    - name: py_audio2
+      type: python_packages
+      install:
+        - aubio
+        # - librosa
+        # - mido
+        - mingus
+        - miniaudio
+        - music21
+        # - pippi
+        - PyAudio
+        - pydub
+        # - pyliblo
+        - pyrubberband
+        - PySoundFile
+        - python-osc
+        # - python-rtmidi
+        - PyTuning
+        - sox
+        - soxbindings
+
+
+    - name: puredata
+      type: debian_packages
+      install:
+        - puredata
+        - puredata-dev
+        - pd-3dp         
+        - pd-ableton-link
+        - pd-ambix       
+        - pd-arraysize   
+        - pd-aubio       
+        - pd-autopreset  
+        - pd-bassemu     
+        - pd-beatpipe    
+        - pd-blokas      
+        - pd-boids       
+        - pd-bsaylor     
+        - pd-chaos       
+        - pd-cmos        
+        - pd-comport     
+        - pd-creb        
+        - pd-csound      
+        - pd-cxc         
+        - pd-cyclone     
+        - pd-deken       
+        - pd-deken-apt   
+        - pd-earplug     
+        - pd-ekext       
+        - pd-ext13
+        - pd-extendedview
+        - pd-fftease     
+        - pd-flext-dev   
+        - pd-flext-doc   
+        - pd-flite       
+        - pd-freeverb    
+        - pd-ggee        
+        - pd-gil         
+        - pd-hcs         
+        - pd-hexloader   
+        - pd-hid         
+        - pd-iem         
+        - pd-jmmmp       
+        - pd-jsusfx      
+        - pd-kollabs     
+        - pd-lib-builder
+        - pd-libdir       
+        - pd-list-abs     
+        - pd-log
+        - pd-lua
+        - pd-lyonpotpourri
+        - pd-mapping      
+        - pd-markex       
+        - pd-maxlib       
+        - pd-mediasettings
+        - pd-mjlib        
+        - pd-moonlib      
+        - pd-motex        
+        - pd-mrpeach      
+        - pd-mrpeach-net  
+        - pd-nusmuk       
+        - pd-osc
+        - pd-pan
+        - pd-pddp         
+        - pd-pdogg        
+        - pd-pdp
+        - pd-pdstring     
+        - pd-pduino
+        - pd-plugin
+        - pd-pmpd
+        - pd-pool
+        - pd-puremapping
+        - pd-purepd
+        - pd-purest-json
+        - pd-py
+        - pd-readanysf
+        - pd-rtclib
+        - pd-sigpack
+        - pd-slip
+        - pd-smlib
+        - pd-syslog
+        - pd-tclpd
+        - pd-testtools
+        - pd-unauthorized
+        - pd-upp
+        - pd-vbap
+        - pd-wiimote
+        - pd-windowing
+        - pd-xbee
+        - pd-xsample
+        - pd-zexy

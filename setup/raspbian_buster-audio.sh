@@ -26,7 +26,7 @@ function install_config {
     echo "installing $1"
     cp -rf $CONFIG/$1 $CONFIG_DST/
 }
-recipe "name: pi4"
+recipe "name: audio"
 echo "platform: raspbian"
 echo
 section ">>> installing default dotfiles"
@@ -71,7 +71,7 @@ sudo apt-get update && sudo apt-get install -y \
     xorg \
     xserver-xorg-input-all \
     fonts-dejavu \
-    i3 \
+    awesome \
     xfce4-terminal \
     lxappearance \
     gtk2-engines \
@@ -102,11 +102,15 @@ sudo -H pip3 install \
 section ">>> core_audio"
 sudo apt-get update && sudo apt-get install -y \
     sox \
+    ffmpeg \
     libsox-dev \
     libsndfile1-dev \
+    libasound2-dev \
     libportaudio-dev \
+    libportmidi-dev \
     librtaudio-dev \
     librtmidi-dev \
+    liblo-dev \
  && echo "core_audio debian packages installed"
 ###########################################################################
 section ">>> audio_extras"
@@ -124,42 +128,29 @@ sudo apt-get update && sudo apt-get install -y \
     seq24 \
     sonic-pi \
     gmidimonitor \
-    hexter \
     hydrogen \
     midisnoop \
     pmidi \
+    midish \
     qmidiarp \
     qmidinet \
     qmidiroute \
-    seq24 \
     vlc \
     ams \
     amsynth \
     bristol \
-    din \
     freepats \
-    freewheeling \
-    linthesia \
     mididings \
     mma \
-    muse \
     multimedia-midi \
-    moosic \
     patchage \
-    specimen \
     petri-foo \
     python-ecasound \
     python-mididings \
     python-midiutil \
     python-pyknon \
     python-pypm \
-    qtractor \
-    rosegarden \
     qmmp \
-    sndio-tools \
-    sndiod \
-    sooperlooper \
-    swami \
  && echo "audio_extras debian packages installed"
 ###########################################################################
 section ">>> py_audio1"
@@ -170,19 +161,17 @@ sudo apt-get update && sudo apt-get install -y \
     python3-mido \
     python3-rtmidi \
     python3-llvmlite \
+    python3-liblo \
  && echo "py_audio1 debian packages installed"
 ###########################################################################
 section ">>> py_audio2"
 sudo -H pip3 install \
     aubio \
-    librosa \
     mingus \
     miniaudio \
     music21 \
-    pippi \
     PyAudio \
     pydub \
-    pyliblo \
     pyrubberband \
     PySoundFile \
     python-osc \
@@ -230,12 +219,6 @@ sudo apt-get update && sudo apt-get install -y \
     pd-hexloader \
     pd-hid \
     pd-iem \
-    pd-iemambi \
-    pd-iemguts \
-    pd-iemlib \
-    pd-iemmatrix \
-    pd-iemnet \
-    pd-iemutils \
     pd-jmmmp \
     pd-jsusfx \
     pd-kollabs \
