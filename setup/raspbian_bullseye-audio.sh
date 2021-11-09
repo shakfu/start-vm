@@ -4,7 +4,7 @@ COLOR_BOLD_BLUE="\033[1;34m"
 COLOR_BOLD_MAGENTA="\033[1;35m"
 COLOR_BOLD_CYAN="\033[1;36m"
 COLOR_RESET="\033[m"
-CONFIG=config/buster
+CONFIG=config/bullseye
 DEFAULT=default
 CONFIG_DST=$HOME/.config
 BIN=$HOME/bin
@@ -137,13 +137,12 @@ sudo apt-get update && sudo apt-get install -y \
     qmidinet \
     qmidiroute \
     vlc \
+    ffmpeg \
     ams \
     amsynth \
-    bristol \
     freepats \
     mididings \
     mma \
-    multimedia-midi \
     patchage \
     petri-foo \
     python-ecasound \
@@ -151,7 +150,9 @@ sudo apt-get update && sudo apt-get install -y \
     python-midiutil \
     python-pyknon \
     python-pypm \
+    qtractor \
     qmmp \
+    swami \
  && echo "audio_extras debian packages installed"
 ###########################################################################
 section ">>> py_audio1"
