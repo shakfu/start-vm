@@ -43,7 +43,6 @@ sections:
         - python3-setuptools
         - python3-pip
 
-
     - name: py_modules
       type: python_packages
       install:
@@ -58,6 +57,36 @@ sections:
         - pytest
         - black
 
+    - name: py_audio1
+      type: debian_packages
+      install:
+        - python3-alsaaudio
+        - python3-aubio
+        - python3-csound
+        - python3-ecasound
+        - python3-jack-client
+        - python3-liblo
+        - python3-llvmlite
+        - python3-midiutil
+        - python3-mido
+        - python3-pyknon
+        - python3-pyo
+        - python3-pyaudio
+        - python3-rtmidi
+
+    - name: py_audio2
+      type: python_packages
+      install:
+        - mingus
+        - miniaudio
+        - music21
+        - pydub
+        - pyrubberband
+        - PySoundFile
+        - python-osc
+        - PyTuning
+        - sox
+        - soxbindings
 
     - name: core_audio
       type: debian_packages
@@ -80,77 +109,52 @@ sections:
         - csoundqt
         - faust
         - faustworks
+        - supercollider
+        - sc3-plugins
+        - audacity
         - fluidsynth
-        - fluid-soundfont-gm
         - fluid-soundfont-gs
         - qsynth
         - timidity
         - giada
         - seq24
         - sonic-pi
-
-
-        # ???
         - gmidimonitor
         - hydrogen
-        - midisnoop
         - pmidi
         - midish
         - qmidiarp
         - qmidinet
         - qmidiroute
         - vlc
-        - ffmpeg
-
-        # ?????
         - ams
         - amsynth
         - freepats
         - mididings
         - mma
-        - patchage
         - petri-foo
-        - python-ecasound
-        - python-mididings
-        - python-midiutil
-        - python-pyknon
-        - python-pypm
         - qtractor
         - qmmp
         - swami
+      post_install: |
+        git clone https://github.com/hundredrabbits/Orca-c.git
+        cd Orca-c
+        make
+        sudo cp build/orca /usr/local/bin/orca
 
-
-    - name: py_audio1
+    - name: audio_extras_2
       type: debian_packages
       install:
-        - python3-pyo
-        - python3-alsaaudio
-        - python3-jack-client
-        - python3-mido
-        - python3-rtmidi
-        - python3-llvmlite
-        - python3-liblo
-
-    - name: py_audio2
-      type: python_packages
-      install:
-        - aubio
-        # - librosa
-        # - mido
-        - mingus
-        - miniaudio
-        - music21
-        # - pippi
-        - PyAudio
-        - pydub
-        # - pyliblo
-        - pyrubberband
-        - PySoundFile
-        - python-osc
-        # - python-rtmidi
-        - PyTuning
-        - sox
-        - soxbindings
+        - ableton-link-utils
+        - bpm-tools
+        - extract
+        - flac
+        - gsequencer
+        - paulstretch
+        - soundgrain
+        - soundstretch
+        - taopm
+        - yatm
 
 
     - name: puredata
@@ -164,8 +168,7 @@ sections:
         - pd-arraysize
         - pd-autopreset
         - pd-bassemu
-        - pd-beatpipe  
-        # - pd-blokas
+        - pd-beatpipe
         - pd-boids       
         - pd-bsaylor     
         - pd-chaos       
