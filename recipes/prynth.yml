@@ -1,0 +1,97 @@
+
+name: prynth
+config: console
+ref: https://github.com/shakfu/prynth
+platform: debian:bullseye
+sections:
+    - name: core
+      type: debian_packages
+      pre_install: |
+        sudo apt update && sudo apt dist-upgrade -y
+      install:
+        - git
+        - build-essential
+        - cmake
+        - ncdu
+        - htop
+        - neovim
+        - tig
+        - bmon
+        - pv
+        - rpl
+        - unzip
+        - p7zip-full
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+
+    - name: py_modules
+      type: python_packages
+      install:
+          - wheel
+          - virtualenv
+          - ipython
+          - cython
+          - grin
+          - isort
+          - ranger-fm
+    
+    - name: libraries
+      type: debian_packages
+      install:
+          - nodejs
+          - liblo7
+          - wiringpi
+
+    - name: infrastructure
+      type: debian_packages
+      install:
+          - libsamplerate0-dev
+          - libsndfile1-dev
+          - libasound2-dev
+          - libavahi-client-dev
+          - libreadline-dev
+          - libfftw3-dev
+          - libudev-dev
+          - libncurses5-dev
+
+    - name: jack
+      type: bash
+      install: |
+        git clone git://github.com/jackaudio/jack2 --depth 1
+        cd jack2
+        ./waf configure --alsa
+        ./waf build
+        sudo ./waf install
+        sudo ldconfig
+        cd .. && rm -rf jack2
+      post_install: |
+        sudo sh -c "echo @audio - memlock 256000 >> /etc/security/limits.conf"
+        sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
+
+    - name: supercollider
+      type: bash
+      install: |
+        git clone --recurse-submodules https://github.com/supercollider/supercollider.git
+        cd supercollider
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release -DSUPERNOVA=OFF -DSC_ED=OFF -DSC_EL=OFF -DSC_VIM=ON -DNATIVE=ON -DSC_IDE=OFF -DNO_X11=ON -DSC_QT=OFF ..
+        sudo cmake --build . --config Release --target install
+        sudo ldconfig
+    
+    - name: prynth
+      type: bash
+      install: |
+        cd ~
+        git clone https://github.com/prynth/prynth.git
+      post_install: |
+        if [`uname -m` == 'arm7l']; then
+          gcc -o /home/pi/prynth/pbridge/pbridge /home/pi/prynth/pbridge/src/pbridge.c -lwiringPi -llo
+        fi
+  
+
+    

@@ -2,11 +2,15 @@
 """
 start-vm: 1 step machine setups
 
-features:
+Features:
 
-- uses yaml files to generate
-    - bash files
-    - docker files
+- from a yaml 'recipe', it can generate
+    - bash automated or step-by-step setup files
+    - docker build files
+
+Requires:
+    - pyyaml
+    - jinja2
 
 """
 
@@ -43,7 +47,7 @@ class Builder(ABC):
         ),
     }
 
-    def __init__(self, recipe_yml, options=None):
+    def __init__(self, recipe_yml, options):
         self.recipe_yml = pathlib.Path(recipe_yml)
         self.name = self.recipe_yml.stem
         self.options = options
@@ -75,7 +79,7 @@ class Builder(ABC):
     @property
     def target(self):
         """Output target property."""
-        return self.prefix + "_" + self.name + self.suffix
+        return f'{self.prefix}_{self.name}{self.suffix}'
 
     def cmd(self, shell_cmd, *args, **kwds):
         """Executes a shell command with logging and easy formatting."""
@@ -140,7 +144,7 @@ class DockerFileBuilder(Builder):
     template = "Dockerfile"
 
     def run(self):
-        self.log("docker build -t %s -f %s", self.name, self.target)
+        self.log.info("docker build -t %s -f %s", self.name, self.target)
 
 
 def commandline():
@@ -156,10 +160,8 @@ def commandline():
     option("--conditional", "-c", action="store_true",
            help="add conditional steps")
     option("--run", "-r", action="store_true", help="run bash file")
-    option(
-        "--strip", "-s", default=False, action="store_true",
-        help="strip empty lines"
-    )
+    option("--strip", "-s", default=False, action="store_true",
+           help="strip empty lines")
     option(
         "--executable",
         "-e",

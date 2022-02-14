@@ -1,0 +1,40 @@
+
+name: console
+config: debian
+platform: debian:bullseye
+sections:
+    - name: core
+      type: debian_packages
+      pre_install: |
+        sudo apt update && sudo apt dist-upgrade -y
+      install:
+        - git
+        - build-essential
+        - cmake
+        - ncdu
+        - htop
+        - neovim
+        - tig
+        - bmon
+        - pv
+        - rpl
+        - unzip
+        - p7zip-full
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+
+    - name: py_modules
+      type: python_packages
+      install:
+          - wheel
+          - virtualenv
+          - ipython
+          - cython
+          - grin
+          - isort
+          - ranger-fm

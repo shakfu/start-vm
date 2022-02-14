@@ -14,27 +14,26 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 - Auto-run script after generation
 
-
 ## Basic Usage
 
 ### Clone and Install
 
 Install a fresh ubuntu server 20.04 LTS distro on a virtual or physical machine engine and then:
 
-```
-$ git clone https://github.com/shakfu/start-vm
+```bash
+git clone https://github.com/shakfu/start-vm
 
-$ cd start-vm
+cd start-vm
 
-$ ./setup/ubuntu_20.04_focal.sh
+./setup/ubuntu_20.04_focal.sh
 ```
 
 ### Clone, Generate and Install
 
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
-```
-$ start_vm.py --bashfile --conditional recipes/<recipe>.yml
+```bash
+start_vm.py --bashfile --conditional recipes/<recipe>.yml
 ```
 
 The generated bash recipe files are created in the `setup` folder
@@ -49,7 +48,7 @@ Future plans include the generation of Dockerfiles from `<recipe>.yml` files.
 
 ## Command-line Usage
 
-```
+```text
 usage: start_vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
                    [--executable]
                    recipe [recipe ...]
@@ -68,7 +67,6 @@ optional arguments:
   --strip, -s        strip empty lines
   --executable, -e   make setup file executable
 ```
-
 
 ## Creating new recipes
 
@@ -244,9 +242,7 @@ sections:
         sudo apt-get autoremove
         sudo apt-get autoclean
         sudo apt-get clean
-
 ``
-
 
 ## Current Implementations
 

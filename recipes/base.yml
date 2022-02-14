@@ -1,7 +1,7 @@
 
 name: base
 config: base
-platform: ubuntu:16.04
+platform: debian:buster
 sections:
     - name: core
       type: debian_packages
@@ -14,7 +14,6 @@ sections:
         - vim
         - exuberant-ctags
         - tig
-        - ranger
         - bmon
         - pv
         - rpl
@@ -48,6 +47,7 @@ sections:
           - radon
           - autopep8
           - glances
+          - ranger-fm
 
     - name: database
       type: debian_packages
