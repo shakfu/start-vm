@@ -319,6 +319,5 @@ cabal install --lib csound-expression
 cd ~
 cat > install_superdirt.scd << EOF
 Quarks.checkForUpdates({Quarks.install("SuperDirt", "v1.7.3"); thisProcess.recompile()});
-0.exit;
 EOF
-echo "run 'sclang superdirt.scd'"
+echo "reboot and then run 'sclang superdirt.scd'"
