@@ -1,0 +1,289 @@
+
+name: ttplus
+config: bullseye
+platform: rpios
+sections:
+    - name: core_dev
+      type: debian_packages
+      pre_install: |
+        sudo apt update && sudo apt dist-upgrade -y
+      install:
+        - git
+        - build-essential
+        - cmake
+        - autoconf
+        - libtool
+        - automake
+        - bison
+        - flex
+        - swig        
+        - indent
+        - upx-ucl
+        - vim-nox
+        - exuberant-ctags
+        - ncdu
+        - htop
+        - rpl
+        - tmux
+        - pv
+        - unzip
+        - p7zip-full
+        - tig
+        - ranger
+        - bmon
+        - sqlite3
+        - nodejs
+
+    - name: core_libs
+      type: debian_packages
+      install:
+        - libavahi-client-dev
+        - libreadline-dev
+        - libfftw3-dev
+        - libudev-dev
+        - libncurses5-dev
+        - libssl-dev
+        - libgc-dev
+        - libluajit-5.1-dev
+
+    - name: core_audio_libs
+      type: debian_packages
+      install:
+        - sox
+        - ffmpeg
+        - lame
+        - flac
+        - libsox-dev
+        - libsndfile1-dev
+        - libasound2-dev
+        - libportaudio-dev
+        - libportmidi-dev
+        - librtaudio-dev
+        - librtmidi-dev
+        - libsamplerate0-dev
+        - liblo-dev
+        - libcsnd6-6.0v5
+
+    - name: jack
+      type: bash
+      install: |
+        git clone https://github.com/jackaudio/jack2 --depth 1
+        cd jack2
+        ./waf configure --alsa --libdir=/usr/lib/arm-linux-gnueabihf/
+        ./waf build
+        sudo ./waf install
+        sudo ldconfig
+        cd .. && rm -rf jack2
+      post_install: |
+        sudo sh -c "echo @audio - memlock 256000 >> /etc/security/limits.conf"
+        sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
+
+    - name: supercollider
+      type: bash
+      install: |
+        git clone --recurse-submodules https://github.com/supercollider/supercollider.git
+        cd supercollider
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release -DSUPERNOVA=OFF -DSC_ED=OFF -DSC_EL=OFF -DSC_VIM=ON -DNATIVE=ON -DSC_IDE=OFF -DNO_X11=ON -DSC_QT=OFF ..
+        sudo cmake --build . --config Release --target install
+        sudo ldconfig
+        cd ..
+      post_install: |
+        # setup jack
+        # `-dhw:0` is the internal soundcard. Use `-dhw:1` for USB soundcards. `aplay -l` will list available devices.
+        echo /usr/local/bin/jackd -P75 -p16 -dalsa -dhw:0 -r44100 -p1024 -n3 > ~/.jackdrc
+
+    - name: sc3-plugins
+      type: bash
+      install: |
+        git clone --recursive https://github.com/supercollider/sc3-plugins.git
+        cd sc3-plugins
+        mkdir build && cd build
+        # for both scsynth and supernova plugins; set -DSUPERNOVA=OFF to build only scsynth plugins
+        cmake -DSC_PATH=../../supercollider -DCMAKE_BUILD_TYPE=Release -DSUPERNOVA=OFF ..
+        cmake --build . --config Release
+        sudo cmake --build . --config Release --target install
+        sudo ldconfig
+
+    - name: puredata
+      type: debian_packages
+      install:
+        - puredata
+        - puredata-dev
+        - pd-3dp
+        - pd-ableton-link
+        - pd-ambix
+        - pd-arraysize
+        - pd-autopreset
+        - pd-bassemu
+        - pd-beatpipe
+        - pd-boids       
+        - pd-bsaylor     
+        - pd-chaos       
+        - pd-cmos        
+        - pd-comport     
+        - pd-creb        
+        - pd-csound      
+        - pd-cxc         
+        - pd-cyclone     
+        - pd-deken       
+        - pd-deken-apt   
+        - pd-earplug     
+        - pd-ekext       
+        - pd-ext13
+        - pd-extendedview
+        - pd-fftease     
+        - pd-flext-dev   
+        - pd-flext-doc   
+        - pd-flite       
+        - pd-freeverb    
+        - pd-ggee        
+        - pd-gil         
+        - pd-hcs         
+        - pd-hexloader   
+        - pd-hid         
+        - pd-iem         
+        - pd-jmmmp       
+        - pd-jsusfx      
+        - pd-kollabs     
+        - pd-lib-builder
+        - pd-libdir       
+        - pd-list-abs     
+        - pd-log
+        - pd-lua
+        - pd-lyonpotpourri
+        - pd-mapping      
+        - pd-markex       
+        - pd-maxlib       
+        - pd-mediasettings
+        - pd-mjlib        
+        - pd-moonlib      
+        - pd-motex        
+        - pd-mrpeach      
+        - pd-mrpeach-net  
+        - pd-nusmuk       
+        - pd-osc
+        - pd-pan
+        - pd-pddp         
+        - pd-pdogg        
+        - pd-pdp
+        - pd-pdstring     
+        - pd-pduino
+        - pd-plugin
+        - pd-pmpd
+        - pd-pool
+        - pd-puremapping
+        - pd-purepd
+        - pd-purest-json
+        - pd-readanysf
+        - pd-rtclib
+        - pd-sigpack
+        - pd-slip
+        - pd-smlib
+        - pd-syslog
+        - pd-tclpd
+        - pd-testtools
+        - pd-unauthorized
+        - pd-upp
+        - pd-vbap
+        - pd-wiimote
+        - pd-windowing
+        - pd-xbee
+        - pd-xsample
+        - pd-zexy
+
+    - name: audio_extras
+      type: debian_packages
+      install:
+        - csound
+        - faust
+        - fluidsynth
+        - fluid-soundfont-gs
+        - timidity
+        - pmidi
+        - midish
+      post_install: |
+        git clone https://github.com/hundredrabbits/Orca-c.git
+        cd Orca-c
+        make
+        sudo cp build/orca /usr/local/bin/orca
+
+    - name: audio_extras_2
+      type: debian_packages
+      install:
+        - ableton-link-utils
+        # - extract
+        - flac
+        - paulstretch
+
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3-dev
+        - python3-setuptools
+        - python3-pip
+        - python3-numpy
+
+    - name: py_modules
+      type: python_packages
+      install:
+        - wheel
+        - virtualenv
+        - ipython
+        - cython
+        - litecli
+        - grin
+        - isort
+        - pylint
+        - pytest
+        - black
+
+    - name: py_audio1
+      type: debian_packages
+      install:
+        - python3-alsaaudio
+        - python3-aubio
+        - python3-csound
+        - python3-ecasound
+        - python3-jack-client
+        - python3-liblo
+        - python3-llvmlite
+        - python3-midiutil
+        - python3-mido
+        - python3-pyknon
+        - python3-pyo
+        - python3-pyaudio
+        - python3-rtmidi
+
+    - name: py_audio2
+      type: python_packages
+      install:
+        - mingus
+        - miniaudio
+        - music21
+        - pydub
+        - pyrubberband
+        - PySoundFile
+        - python-osc
+        - PyTuning
+        - sox
+        - soxbindings
+
+    - name: haskell_packages
+      type: debian_packages
+      install:
+        - haskell-platform
+      post_install: |
+        cabal update
+        cabal install --lib tidal
+        cabal install --lib csound-expression
+        cd ~
+        cat > install_superdirt.scd << EOF
+        Quarks.checkForUpdates({Quarks.install("SuperDirt", "v1.7.3"); thisProcess.recompile()});
+        0.exit;
+        EOF
+        echo "run 'sclang superdirt.scd'"
+
+
+
