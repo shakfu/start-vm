@@ -43,7 +43,6 @@ Plugin 'luisjure/csound-vim'
 Plugin 'ibab/vim-snakemake'
 Plugin 'tbastos/vim-lua'
 Plugin 'highwaynoise/chuck.vim'
-Plugin 'tidalcycles/vim-tidal'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
