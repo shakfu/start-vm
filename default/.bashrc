@@ -106,8 +106,8 @@ alias f='find | grep'                       # quick file search
 alias sps='ps aux | grep -v grep | grep'    # search processes
 alias free='free -m'                        # show free mem in mb
 alias path='echo -e ${PATH//:/\\n}'
-alias ncduv='cd / && sudo ncdu --exclude=/home/sa/.host-shared'
-alias pinstall='sudo -H pip3 install --upgrade'
+alias ncduv='cd / && sudo ncdu --exclude=$HOME/.host-shared'
+alias pinstall='pip3 install --upgrade'
 
 # interactive line wrapping
 alias i='ipython -i'
@@ -115,7 +115,7 @@ alias lpsql="psql -L ~/psql.log"
 #alias git='hub'
 alias gitlog='git log --pretty=oneline --abbrev-commit'
 alias mp3get='youtube-dl --extract-audio --audio-format mp3'
-alias outdated='sudo -H pip list --format=columns --outdated'
+alias outdated='pip3 list --format=columns --outdated'
 
 # Computer cleanup
 alias cleanup='sudo apt-get -y autoclean && sudo apt-get -y autoremove && sudo apt-get -y clean && sudo apt-get -y remove && sudo deborphan | xargs sudo apt-get -y remove --purge'

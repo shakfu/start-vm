@@ -202,11 +202,6 @@ sections:
         - timidity
         - pmidi
         - midish
-      post_install: |
-        git clone https://github.com/hundredrabbits/Orca-c.git
-        cd Orca-c
-        make
-        sudo cp build/orca /usr/local/bin/orca
 
     - name: audio_extras_2
       type: debian_packages
@@ -216,6 +211,13 @@ sections:
         - flac
         - paulstretch
 
+    - name: orca_sequencer
+      type: bash
+      install: |
+        git clone https://github.com/hundredrabbits/Orca-c.git
+        cd Orca-c
+        make
+        sudo cp build/orca /usr/local/bin/orca
 
     - name: python
       type: debian_packages
@@ -269,6 +271,17 @@ sections:
         - PyTuning
         - sox
         - soxbindings
+        - hvcc
+
+    - name: soul_lang
+      type: bash
+      install: |
+        cd ~
+        wget https://github.com/soul-lang/SOUL/releases/download/1.0.92/binaries-linux-combined.zip
+        unzip binaries-linux-combined.zip
+        sudo cp linux/arm32/soul /usr/local/bin/ && \
+          sudo cp linux/arm32/libSOUL_PatchLoader.so /usr/local/lib/
+        rm -rf linux binaries-linux-combined.zip
 
     - name: haskell_packages
       type: debian_packages
@@ -283,6 +296,14 @@ sections:
         Quarks.checkForUpdates({Quarks.install("SuperDirt", "v1.7.3"); thisProcess.recompile()});
         EOF
         echo "reboot and then run 'sclang superdirt.scd'"
+
+
+    - name: rust_packages
+      type: bash
+      install: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        source "$HOME/.cargo/env"
+        
 
 
 
