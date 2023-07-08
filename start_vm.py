@@ -14,13 +14,13 @@ Requires:
 
 """
 
-
+import abc
+import argparse
 import logging
 import os
 import pathlib
 import stat
 import sys
-from abc import ABC, abstractmethod
 
 import jinja2
 import yaml
@@ -32,7 +32,7 @@ LOG_FORMAT = "%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s"
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, stream=sys.stdout)
 
 
-class Builder(ABC):
+class Builder(abc.ABC):
     """Abstract base class with standard interface / common functions"""
 
     prefix = ""
@@ -47,16 +47,12 @@ class Builder(ABC):
         ),
     }
 
-    def __init__(self, recipe_yml, options):
+    def __init__(self, recipe_yml: str, options):
         self.recipe_yml = pathlib.Path(recipe_yml)
         self.name = self.recipe_yml.stem
         self.options = options
-        self.recipe = self._load_yml()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.recipe["defaults"] = os.listdir("default")
-        self.recipe["configs"] = os.listdir(
-            "config/{}".format(self.recipe["config"]))
-        self.recipe.update(vars(self.options))
+        self.recipe = self._get_recipe()
         self.env = jinja2.Environment(
             loader=jinja2.FileSystemLoader("templates"),
             trim_blocks=True,
@@ -64,16 +60,43 @@ class Builder(ABC):
         )
         self.env.filters.update(self.filters)
 
+
     def __repr__(self):
         return "<{} recipe='{}'>".format(
             self.__class__.__name__, self.recipe_yml)
 
-    def _load_yml(self):
-        """Loads the yaml recipe file."""
+    def _load_recipe_from_file(self, name: str = None) -> dict:
+        """Returns default recipe or a named recipe."""
         recipe = None
-        with self.recipe_yml.open() as fopen:
+        yml_file = None
+        if not name:
+            yml_file = self.recipe_yml
+        else:
+            yml_file = self.recipe_yml.parent / f'{name}.yml'
+        with yml_file.open() as fopen:
             content = fopen.read()
             recipe = yaml.load(content, Loader=yaml.SafeLoader)
+        return recipe
+
+    def _get_recipe(self, recipe: dict = None) -> dict:
+        if not recipe:
+            recipe = self._load_recipe_from_file()
+        recipe["defaults"] = os.listdir("default")
+        recipe["configs"] = os.listdir(
+            "config/{}".format(recipe["config"]))
+        if 'inherits' in recipe:
+            if isinstance(recipe['inherits'], str):
+                parents = [recipe['inherits']]
+            else:
+                parents = recipe['inherits']
+            child_section_names = [section['name'] for section in recipe['sections']]
+            for parent in parents:
+                parent_recipe = self._load_recipe_from_file(parent)
+                for section in parent_recipe['sections']:
+                    if section['name'] in child_section_names:
+                        continue
+                    recipe['sections'].append(section)
+        recipe.update(vars(self.options))
         return recipe
 
     @property
@@ -101,7 +124,7 @@ class Builder(ABC):
             path.chmod(flag.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     def run_section(self, name):
-        """Run individual section from recipy."""
+        """Run individual section from recipe."""
         section = [
             section for section in self.recipe["sections"]
                     if section["name"] == name
@@ -120,7 +143,7 @@ class Builder(ABC):
             self.prefix = "_".join(self.recipe["platform"].split(":"))
         self.write_file(rendered)
 
-    @abstractmethod
+    @abc.abstractmethod
     def run(self):
         "override me"
 
@@ -149,26 +172,18 @@ class DockerFileBuilder(Builder):
 
 def commandline():
     """Command line interface."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="Install Packages")
     option = parser.add_argument
 
     option("recipe", nargs="+", help="recipes to install")
     option("--docker", "-d", action="store_true", help="generate dockerfile")
     option("--bash", "-b", action="store_true", help="generate bash file")
-    option("--conditional", "-c", action="store_true",
-           help="add conditional steps")
+    option("--conditional", "-c", action="store_true", help="add conditional steps")
     option("--run", "-r", action="store_true", help="run bash file")
-    option("--strip", "-s", default=False, action="store_true",
-           help="strip empty lines")
-    option(
-        "--executable",
-        "-e",
-        default=True,
-        action="store_true",
-        help="make setup file executable",
-    )
+    option("--strip", "-s", default=False, action="store_true", 
+            help="strip empty lines")
+    option("--executable", "-e", default=True, action="store_true", 
+            help="make setup file executable")
     option("--section", type=str, help="run section")
     args = parser.parse_args()
 
