@@ -98,6 +98,14 @@ sudo gem install \
  && echo "{{section.name}} ruby packages installed"
 {% endif %}
 
+{% if section.type == "rust_packages" %}
+cargo install \
+{% for package in section.install %}
+    {{package}} \
+{% endfor %}
+ && echo "{{section.name}} rust packages installed"
+{% endif %}
+
 {% if section.type == "bash" %}
 {{section.install}}
 echo "{{section.name}} installed"

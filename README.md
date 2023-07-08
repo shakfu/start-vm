@@ -123,11 +123,11 @@ for parent in parent_recipes:
 
 This is useful when one wants to have derivative recipes from a well specified and tested base recipe.
 
+Note that configuration inheritance has not been implemented, so one has to be careful when using the inheritance feature and only inherit the a similarly configured base recipe.
 
 ## Creating new recipes
 
-Recipe files are yaml files with a certain structure. The easiest way to learn is look at the provided recipes in this projectto or just customize the included `recipes/base.yml` example or inherit from it.
-
+Recipe files are yaml files with a certain structure. The easiest way to learn is look at the provided recipes in this project. You can then pick a recipe and just customize it or or create a new recipe and inherit from a pre-existing one as above.
 
 ## TODO
 
