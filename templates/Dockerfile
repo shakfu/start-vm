@@ -30,6 +30,14 @@ RUN echo "STARTING" \
  && rm -rf ${HOME}/.cache /tmp/*
 {% endif %}
 
+{% if section.type == "rust_packages" %}
+ && cargo install \
+{% for package in section.install %}
+    {{package}} \
+{% endfor %}
+ && rm -rf ${HOME}/.cache /tmp/*
+{% endif %}
+
 {% if section.type == "rlang_packages" %}
  && Rscript -e "install.packages({{rlang_packages | sequence}})"
  && rm -rf ${HOME}/.cache /tmp/*
