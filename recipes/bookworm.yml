@@ -1,6 +1,6 @@
 
 name: bookworm
-config: base
+config: bookworm
 platform: "debian:bookworm"
 sections:
   - name: core
@@ -85,6 +85,4 @@ sections:
       - gtk2-engines
       - conky
       - scite
-      - gtkorphan
-      - fslint
       - bleachbit
