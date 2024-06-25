@@ -1,7 +1,9 @@
-
 name: artful
 config: artful
-platform: ubuntu:17.10
+platform: linux
+os: ubuntu
+version: '17.10'
+release: artful
 sections:
     - name: core
       type: debian_packages

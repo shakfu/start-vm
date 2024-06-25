@@ -1,7 +1,9 @@
-
 name: terminal_tedium
 config: console
-platform: debian:bullseye
+platform: rpi
+os: debian
+version: '11'
+release: bullseye
 sections:
     - name: core
       type: debian_packages

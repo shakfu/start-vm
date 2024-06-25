@@ -1,7 +1,9 @@
-
 name: sumo
 config: artful
-platform: ubuntu:17.10
+platform: linux
+os: ubuntu
+version: '17.10'
+release: artful
 sections:
     - name: core
       type: debian_packages
@@ -196,7 +198,7 @@ sections:
         rm $RSTUDIO
 
     - name: docker
-      type: bash
+      type: shell
       install: |
         DOCKER=get-docker.sh
         curl -fsSL get.docker.com -o $DOCKER
@@ -214,7 +216,7 @@ sections:
           - sublime-text
 
     - name: golang
-      type: bash
+      type: shell
       install: |
         GOLANG=go1.9.2.linux-amd64.tar.gz
         wget https://redirector.gvt1.com/edgedl/go/$GOLANG
@@ -222,12 +224,12 @@ sections:
         rm -rf $GOLANG
 
     - name: rust-lang
-      type: bash
+      type: shell
       install: |
         curl https://sh.rustup.rs -sSf | sh
 
     - name: powerline-fonts
-      type: bash
+      type: shell
       install: |
         git clone https://github.com/powerline/fonts.git --depth=1
         cd fonts

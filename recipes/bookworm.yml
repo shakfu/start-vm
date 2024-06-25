@@ -1,7 +1,9 @@
-
-name: bookworm
+name: base
 config: bookworm
-platform: "debian:bookworm"
+platform: linux
+os: debian
+version: '12'
+release: bookworm
 sections:
   - name: core
     type: debian_packages
@@ -33,7 +35,7 @@ sections:
       fi
 
   - name: powerline-fonts
-    type: bash
+    type: shell
     install: |
       git clone https://github.com/powerline/fonts.git --depth=1
       cd fonts

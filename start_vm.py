@@ -5,7 +5,7 @@ start-vm: 1 step machine setups
 Features:
 
 - from a yaml 'recipe', it can generate
-    - bash automated or step-by-step setup files
+    - shell automated or step-by-step setup files
     - docker build files
 
 Requires:
@@ -24,6 +24,8 @@ import sys
 
 import jinja2
 import yaml
+
+from typing import Optional, Any
 
 DEBUG = True
 
@@ -47,9 +49,9 @@ class Builder(abc.ABC):
         ),
     }
 
-    def __init__(self, recipe_yml: str, options):
+    def __init__(self, recipe_yml: str, options: argparse.Namespace):
         self.recipe_yml = pathlib.Path(recipe_yml)
-        self.name = self.recipe_yml.stem
+        # self.name = self.recipe_yml.stem
         self.options = options
         self.log = logging.getLogger(self.__class__.__name__)
         self.recipe = self._get_recipe()
@@ -60,58 +62,56 @@ class Builder(abc.ABC):
         )
         self.env.filters.update(self.filters)
 
-
     def __repr__(self):
-        return "<{} recipe='{}'>".format(
-            self.__class__.__name__, self.recipe_yml)
+        return "<{} recipe='{}'>".format(self.__class__.__name__, self.recipe_yml)
 
-    def _load_recipe_from_file(self, name: str = None) -> dict:
+    def _load_recipe_from_file(self, name: Optional[str] = None) -> dict:
         """Returns default recipe or a named recipe."""
         recipe = None
         yml_file = None
         if not name:
             yml_file = self.recipe_yml
         else:
-            yml_file = self.recipe_yml.parent / f'{name}.yml'
+            yml_file = self.recipe_yml.parent / f"{name}.yml"
         with yml_file.open() as fopen:
             content = fopen.read()
             recipe = yaml.load(content, Loader=yaml.SafeLoader)
         return recipe
 
-    def _get_recipe(self, recipe: dict = None) -> dict:
+    def _get_recipe(self, recipe: Optional[dict[str,Any]] = None) -> dict:
         if not recipe:
             recipe = self._load_recipe_from_file()
         recipe["defaults"] = os.listdir("default")
-        recipe["configs"] = os.listdir(
-            "config/{}".format(recipe["config"]))
-        if 'inherits' in recipe:
-            if isinstance(recipe['inherits'], str):
-                parents = [recipe['inherits']]
+        recipe["configs"] = os.listdir("config/{}".format(recipe["config"]))
+        if "inherits" in recipe:
+            if isinstance(recipe["inherits"], str):
+                parents = [recipe["inherits"]]
             else:
-                parents = recipe['inherits']
-            child_section_names = [section['name'] for section in recipe['sections']]
+                parents = recipe["inherits"]
+            child_section_names = [section["name"] for section in recipe["sections"]]
             for parent in parents:
                 parent_recipe = self._load_recipe_from_file(parent)
-                for section in parent_recipe['sections']:
-                    if section['name'] in child_section_names:
+                for section in parent_recipe["sections"]:
+                    if section["name"] in child_section_names:
                         continue
-                    recipe['sections'].append(section)
+                    recipe["sections"].append(section)
         recipe.update(vars(self.options))
         return recipe
 
     @property
-    def target(self):
+    def target(self) -> str:
         """Output target property."""
-        return f'{self.prefix}_{self.name}{self.suffix}'
+        # return f"{self.prefix}_{self.name}{self.suffix}"
+        return f"{self.prefix}{self.suffix}"
 
-    def cmd(self, shell_cmd, *args, **kwds):
+    def cmd(self, shell_cmd: str, *args, **kwds):
         """Executes a shell command with logging and easy formatting."""
         shell_cmd = shell_cmd.format(*args, **kwds)
         self.log.info(shell_cmd)
         if self.options.run:
             os.system(shell_cmd)
 
-    def write_file(self, data):
+    def write_file(self, data: str):
         """Write setup file with options."""
         if self.options.strip:
             data = "\n".join(line for line in data.split("\n") if line.strip())
@@ -122,25 +122,35 @@ class Builder(abc.ABC):
         if self.options.executable:
             flag = path.stat()
             path.chmod(flag.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        if self.options.format:
+            try:
+                os.system(f"shfmt -w {path}")
+            except:
+                print(f"Could not format {path}")
 
-    def run_section(self, name):
+    def run_section(self, name: str):
         """Run individual section from recipe."""
         section = [
-            section for section in self.recipe["sections"]
-                    if section["name"] == name
+            section for section in self.recipe["sections"] if section["name"] == name
         ][0]
-        if section["type"] == "bash":
+        if section["type"] == "shell":
             shellcmd = "; ".join(section["install"].splitlines())
             os.system(shellcmd)
         else:
-            print("Only sections of type 'bash' can be run currently.")
+            print("Only sections of type 'shell' can be run currently.")
 
     def build(self):
         """Renders a template from a recipe."""
         template = self.env.get_template(self.template)
         rendered = template.render(**self.recipe)
         if not self.prefix:
-            self.prefix = "_".join(self.recipe["platform"].split(":"))
+            self.prefix = "_".join([
+                self.recipe['platform'],
+                self.recipe['os'],
+                self.recipe['version'],
+                self.recipe['name'],
+            ])
+            # self.prefix = "_".join(self.recipe["platform"].split(":"))
         self.write_file(rendered)
 
     @abc.abstractmethod
@@ -148,15 +158,15 @@ class Builder(abc.ABC):
         "override me"
 
 
-class BashBuilder(Builder):
-    """Builds a bash file for package installation."""
+class ShellBuilder(Builder):
+    """Builds a shell file for package installation."""
 
     suffix = ".sh"
-    template = "bash.sh"
+    template = "shell.sh"
 
     def run(self):
         path = self.setup.joinpath(self.target)
-        self.cmd("bash {}", path)
+        self.cmd("sh {}", path)
 
 
 class DockerFileBuilder(Builder):
@@ -176,33 +186,32 @@ def commandline():
     option = parser.add_argument
 
     option("recipe", nargs="+", help="recipes to install")
-    option("--docker", "-d", action="store_true", help="generate dockerfile")
-    option("--bash", "-b", action="store_true", help="generate bash file")
-    option("--conditional", "-c", action="store_true", help="add conditional steps")
-    option("--run", "-r", action="store_true", help="run bash file")
-    option("--strip", "-s", default=False, action="store_true", 
-            help="strip empty lines")
-    option("--executable", "-e", default=True, action="store_true", 
-            help="make setup file executable")
+    option("-d", "--docker", action="store_true", help="generate dockerfile")
+    option("-b", "--shell", action="store_true", help="generate shell file")
+    option("-c", "--conditional", action="store_true", help="add conditional steps")
+    option("-f", "--format", action="store_true", help="format using shfmt")
+    option("-r", "--run", action="store_true", help="run shell file")
+    option("-s", "--strip", default=False, action="store_true", help="strip empty lines")
+    option("-e", "--executable", default=True, action="store_true", help="make setup file executable")
     option("--section", type=str, help="run section")
+
     args = parser.parse_args()
 
     for recipe in args.recipe:
         if args.section:
-            builder = BashBuilder(recipe, args)
+            builder = ShellBuilder(recipe, args)
             builder.run_section(args.section)
 
         if args.docker:
             builder = DockerFileBuilder(recipe, args)
             builder.build()
 
-        if args.bash:
-            builder = BashBuilder(recipe, args)
+        if args.shell:
+            builder = ShellBuilder(recipe, args)
             builder.build()
 
             if args.run:
                 builder.run()
-
 
 if __name__ == "__main__":
     commandline()

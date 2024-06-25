@@ -1,7 +1,9 @@
-
 name: disco
 config: disco
-platform: ubuntu:19.04
+platform: linux
+os: ubuntu
+version: '19.04'
+release: disco
 sections:
     - name: core
       type: debian_packages

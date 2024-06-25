@@ -1,7 +1,9 @@
-
 name: console
 config: debian
-platform: debian:bullseye
+platform: linux
+os: debian
+version: '11'
+release: bullseye
 sections:
     - name: core
       type: debian_packages

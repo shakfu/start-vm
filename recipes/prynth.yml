@@ -1,8 +1,10 @@
-
 name: prynth
 config: console
 ref: https://github.com/shakfu/prynth
-platform: debian:bullseye
+platform: rpi
+os: debian
+version: '11'
+release: bullseye
 sections:
     - name: core
       type: debian_packages
@@ -60,7 +62,7 @@ sections:
           - libncurses5-dev
 
     - name: jack
-      type: bash
+      type: shell
       install: |
         git clone git://github.com/jackaudio/jack2 --depth 1
         cd jack2
@@ -74,7 +76,7 @@ sections:
         sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
 
     - name: supercollider
-      type: bash
+      type: shell
       install: |
         git clone --recurse-submodules https://github.com/supercollider/supercollider.git
         cd supercollider
@@ -84,7 +86,7 @@ sections:
         sudo ldconfig
     
     - name: prynth
-      type: bash
+      type: shell
       install: |
         cd ~
         git clone https://github.com/prynth/prynth.git

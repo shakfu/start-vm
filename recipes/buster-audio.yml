@@ -1,7 +1,9 @@
-
 name: audio
 config: buster
-platform: raspbian
+platform: rpi
+os: debian
+version: '10'
+release: buster
 sections:
     - name: core
       type: debian_packages

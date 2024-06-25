@@ -1,7 +1,9 @@
-
 name: ttplus
 config: bullseye
-platform: rpios
+platform: rpi
+os: debian
+version: '11'
+release: bullseye
 sections:
     - name: core_dev
       type: debian_packages
@@ -65,7 +67,7 @@ sections:
         - libcsnd6-6.0v5
 
     - name: jack
-      type: bash
+      type: shell
       install: |
         git clone https://github.com/jackaudio/jack2 --depth 1
         cd jack2
@@ -79,7 +81,7 @@ sections:
         sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
 
     - name: supercollider
-      type: bash
+      type: shell
       install: |
         git clone --recurse-submodules https://github.com/supercollider/supercollider.git
         cd supercollider
@@ -94,7 +96,7 @@ sections:
         echo /usr/local/bin/jackd -P75 -p16 -dalsa -dhw:0 -r44100 -p1024 -n3 > ~/.jackdrc
 
     - name: sc3-plugins
-      type: bash
+      type: shell
       install: |
         git clone --recursive https://github.com/supercollider/sc3-plugins.git
         cd sc3-plugins
@@ -212,7 +214,7 @@ sections:
         - paulstretch
 
     - name: orca_sequencer
-      type: bash
+      type: shell
       install: |
         git clone https://github.com/hundredrabbits/Orca-c.git
         cd Orca-c
@@ -274,7 +276,7 @@ sections:
         - hvcc
 
     - name: soul_lang
-      type: bash
+      type: shell
       install: |
         cd ~
         wget https://github.com/soul-lang/SOUL/releases/download/1.0.92/binaries-linux-combined.zip
@@ -299,7 +301,7 @@ sections:
 
 
     - name: rust_packages
-      type: bash
+      type: shell
       install: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
         source "$HOME/.cargo/env"

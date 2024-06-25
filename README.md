@@ -1,6 +1,6 @@
 # start-vm: single-step setups for fresh machines
 
-Generates bash scripts and dockerfiles from yaml `recipe` files to provide sigle-step setups of linux-based virtual or physical machines.
+Generates bash scripts and dockerfiles from yaml `recipe` files to provide sigle-step setups of virtual or physical machines.
 
 Do **NOT** use on a pre-existing installation as this program may well over-write your files. You have been warned!
 
@@ -8,7 +8,7 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 - Setup specifications are captured in a yaml `recipe` file.
 
-- Generation of bash setup scripts derived from the `recipe` file in one of two modes:
+- Generation of shell setup scripts derived from the `recipe` file in one of two modes:
 
     1. Auto-mode: without asking for permission (default)
 
@@ -18,19 +18,18 @@ Do **NOT** use on a pre-existing installation as this program may well over-writ
 
 - Many example recipes are provided in the projects with corresponding bash setup files.
 
-
 ## Basic Usage Patterns
 
 ### Clone and Install
 
-For example, one can install a fresh ubuntu server 22.04 LTS distro on a virtual or physical machine engine and then:
+For example, one can install a fresh ubuntu server 24.04 LTS distro on a virtual or physical machine engine and then:
 
 ```bash
 git clone https://github.com/shakfu/start-vm
 
 cd start-vm
 
-./setup/ubuntu_22.04.sh
+./setup/linx_ubuntu_22.04_base.sh
 ```
 
 This is the most common usage, clone start-vm and run one of its pre-generated and saved bash `setup_*` scripts. No python code is run or requirements installed.
@@ -48,23 +47,21 @@ pip install -r requirements.txt
 To generate a `setup/<platform-recipt>.sh` file from a `recipes/<recipe>.yml` file:
 
 ```bash
-start_vm.py --bashfile --conditional recipes/<recipe>.yml
+start_vm.py --shell --conditional recipes/<recipe>.yml
 ```
 
-The generated bash recipe files are created in the `setup` folder
+The generated shell setup files are created in the `setup` folder
 
 **IMPORTANT NOTE**: As of the current implementation *everything* in `default` is copied into `$HOME`.
 
 What is copied out of config is a function of which recipe is used such that *everything* in `config/<recipe>` is copied into `$HOME/.config`.
 
-A minimal ubuntu 22.04 LTS `base.yml` is implemented. Forks and pull requests for other variations are of course wellcome.
-
+A minimal ubuntu 24.04 LTS `base.yml` is implemented. Forks and pull requests for other variations are of course wellcome.
 
 ## Command-line Usage
 
 ```text
-usage: start_vm.py [-h] [--docker] [--bash] [--conditional] [--run] [--strip]
-                   [--executable]
+usage: start_vm.py [-h] [-d] [-b] [-c] [-f] [-r] [-s] [-e] [--section SECTION]
                    recipe [recipe ...]
 
 Install Packages
@@ -72,16 +69,17 @@ Install Packages
 positional arguments:
   recipe             recipes to install
 
-optional arguments:
+options:
   -h, --help         show this help message and exit
-  --docker, -d       generate dockerfile
-  --bash, -b         generate bash file
-  --conditional, -c  add conditional steps
-  --run, -r          run bash file
-  --strip, -s        strip empty lines
-  --executable, -e   make setup file executable
+  -d, --docker       generate dockerfile
+  -b, --shell        generate shell file
+  -c, --conditional  add conditional steps
+  -f, --format       format using shfmt
+  -r, --run          run shell file
+  -s, --strip        strip empty lines
+  -e, --executable   make setup file executable
+  --section SECTION  run section
 ```
-
 
 ## The Model
 
@@ -90,6 +88,9 @@ recipe:
   name: str
   config: str
   platform: str
+  os: str
+  version: str
+  release: str
   inherits: Optional[str, list[str]]
   sections: list[section]
 ```
@@ -108,7 +109,7 @@ section:
   post_install: Optional[str]
 ```
 
-The optional `inherits` field provides for inheriting sections from multiple parent recipes. 
+The optional `inherits` field provides for inheriting sections from multiple parent recipes.
 
 The section inheritance algorithm is basic:
 
@@ -131,8 +132,6 @@ Recipe files are yaml files with a certain structure. The easiest way to learn i
 
 ## TODO
 
-- [x] recipe inheritance: implemented 'section' inheritance from multiple parent recipes.
+- [ ] add powershell template for windows and windows pkg manager support
 
 - [ ] add parameters which can be interpolated initially at the yaml level
-
-

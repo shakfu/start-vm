@@ -1,7 +1,9 @@
-
 name: base
 config: base
-platform: debian:buster
+platform: linux
+os: debian
+version: '10'
+release: buster
 sections:
     - name: core
       type: debian_packages

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 COLOR_BOLD_YELLOW="\033[1;33m"
 COLOR_BOLD_BLUE="\033[1;34m"
@@ -11,24 +11,24 @@ DEFAULT=default
 CONFIG_DST=$HOME/.config
 BIN=$HOME/bin
 
-function recipe {
+recipe() {
     echo
     echo -e $COLOR_BOLD_MAGENTA$1 $COLOR_RESET
     echo "=========================================================="
 }
 
-function section {
+section() {
     echo
     echo -e $COLOR_BOLD_CYAN$1 $COLOR_RESET
     echo "----------------------------------------------------------"
 }
 
-function install_default {
+install_default() {
     echo "installing $1"
     cp -rf $DEFAULT/$1 $HOME/
 }
 
-function install_config {
+install_config() {
     echo "installing $1"
     cp -rf $CONFIG/$1 $CONFIG_DST/
 }
@@ -57,7 +57,7 @@ install_config {{entry}}
 section ">>> {{section.name}}"
 
 {% if conditional %}
-{% if section.type == "bash" %}
+{% if section.type == "shell" %}
 echo "Install {{section.name}}?"
 {% else %}
 echo "Install {{section.name}} {{section.type}}?"
@@ -106,7 +106,7 @@ cargo install \
  && echo "{{section.name}} rust packages installed"
 {% endif %}
 
-{% if section.type == "bash" %}
+{% if section.type == "shell" %}
 {{section.install}}
 echo "{{section.name}} installed"
 {% endif %}
@@ -114,6 +114,14 @@ echo "{{section.name}} installed"
 {% if section.type == "rlang_packages" %}
 sudo Rscript -e "install.packages(c({{section.install | sequence}}), repos='http://cran.rstudio.com/')" \
  && echo "rlang packages installed"
+{% endif %}
+
+{% if section.type == "homebrew_packages" %}
+brew update && brew upgrade && brew install \
+{% for package in section.install %}
+    {{package}} \
+{% endfor %}
+ && echo "homebrew packages installed"
 {% endif %}
 
 {% if section.purge %}

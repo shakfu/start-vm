@@ -1,7 +1,9 @@
-
 name: mini
 config: patchbox
-platform: patchbox_20201123
+platform: rpi
+os: patchbox
+version: '20201123'
+release: patchbox
 sections:
     - name: core
       type: debian_packages
@@ -53,7 +55,7 @@ sections:
         - scite
 
     - name: powerline-fonts
-      type: bash
+      type: shell
       install: |
         git clone https://github.com/powerline/fonts.git --depth=1
         cd fonts
