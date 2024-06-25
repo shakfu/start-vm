@@ -82,7 +82,8 @@ class Builder(abc.ABC):
         if not recipe:
             recipe = self._load_recipe_from_file()
         recipe["defaults"] = os.listdir("default")
-        recipe["configs"] = os.listdir("config/{}".format(recipe["config"]))
+        if recipe["config"]:
+            recipe["configs"] = os.listdir("config/{}".format(recipe["config"]))
         if "inherits" in recipe:
             if isinstance(recipe["inherits"], str):
                 parents = [recipe["inherits"]]
