@@ -1,0 +1,19 @@
+[project]
+name = "start-vm"
+version = "0.1.0"
+description = "Automate virtual machine and container setup from YAML recipes."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jinja2>=3.1.4",
+    "pyyaml>=6.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

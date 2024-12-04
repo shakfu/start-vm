@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """
-start-vm: 1 step machine setups
+start-vm: setup machines in one-step.
 
-Features:
+A program to automate virtual machine and container setup from YAML recipes.
+It can generate shell scripts and Dockerfiles from a YAML configuration file
+that specifies the desired system state and setup steps.
 
-- from a yaml 'recipe', it can generate
-    - shell automated or step-by-step setup files
-    - docker build files
+The program supports:
+- Generating shell scripts for automated or interactive setup
+- Creating Dockerfile build configurations
+- Templating with Jinja2
+- Flexible recipe format in YAML
 
 Requires:
-    - pyyaml
-    - jinja2
-
+- pyyaml
+- jinja2
+- shfmt (optional, for formatting shell scripts)
 """
 
 import abc
@@ -65,6 +69,16 @@ class Builder(abc.ABC):
     def __repr__(self):
         return "<{} recipe='{}'>".format(self.__class__.__name__, self.recipe_yml)
 
+    @property
+    def name(self):
+        """name derived from name of recipe"""
+        return self.recipe["name"]
+
+    @property
+    def target(self) -> str:
+        """Output target property."""
+        return f"{self.prefix}{self.name}{self.suffix}"
+
     def _load_recipe_from_file(self, name: Optional[str] = None) -> dict:
         """Returns default recipe or a named recipe."""
         recipe = None
@@ -78,7 +92,8 @@ class Builder(abc.ABC):
             recipe = yaml.load(content, Loader=yaml.SafeLoader)
         return recipe
 
-    def _get_recipe(self, recipe: Optional[dict[str,Any]] = None) -> dict:
+    def _get_recipe(self, recipe: Optional[dict[str, Any]] = None) -> dict:
+        """Load recipe from file or dict."""
         if not recipe:
             recipe = self._load_recipe_from_file()
         recipe["defaults"] = os.listdir("default")
@@ -98,12 +113,6 @@ class Builder(abc.ABC):
                     recipe["sections"].append(section)
         recipe.update(vars(self.options))
         return recipe
-
-    @property
-    def target(self) -> str:
-        """Output target property."""
-        # return f"{self.prefix}_{self.name}{self.suffix}"
-        return f"{self.prefix}{self.suffix}"
 
     def cmd(self, shell_cmd: str, *args, **kwds):
         """Executes a shell command with logging and easy formatting."""
@@ -126,8 +135,8 @@ class Builder(abc.ABC):
         if self.options.format:
             try:
                 os.system(f"shfmt -w {path}")
-            except:
-                print(f"Could not format {path}")
+            except OSError as e:
+                print(f"Could not format {path}: {e}")
 
     def run_section(self, name: str):
         """Run individual section from recipe."""
@@ -145,12 +154,14 @@ class Builder(abc.ABC):
         template = self.env.get_template(self.template)
         rendered = template.render(**self.recipe)
         if not self.prefix:
-            self.prefix = "_".join([
-                self.recipe['platform'],
-                self.recipe['os'],
-                self.recipe['version'],
-                self.recipe['name'],
-            ])
+            self.prefix = "_".join(
+                [
+                    self.recipe["platform"],
+                    self.recipe["os"],
+                    self.recipe["version"],
+                    self.recipe["name"],
+                ]
+            )
             # self.prefix = "_".join(self.recipe["platform"].split(":"))
         self.write_file(rendered)
 
@@ -166,6 +177,7 @@ class ShellBuilder(Builder):
     template = "shell.sh"
 
     def run(self):
+        """Run the shell script."""
         path = self.setup.joinpath(self.target)
         self.cmd("sh {}", path)
 
@@ -178,6 +190,7 @@ class DockerFileBuilder(Builder):
     template = "Dockerfile"
 
     def run(self):
+        """Run the docker build."""
         self.log.info("docker build -t %s -f %s", self.name, self.target)
 
 
@@ -192,8 +205,16 @@ def commandline():
     option("-c", "--conditional", action="store_true", help="add conditional steps")
     option("-f", "--format", action="store_true", help="format using shfmt")
     option("-r", "--run", action="store_true", help="run shell file")
-    option("-s", "--strip", default=False, action="store_true", help="strip empty lines")
-    option("-e", "--executable", default=True, action="store_true", help="make setup file executable")
+    option(
+        "-s", "--strip", default=False, action="store_true", help="strip empty lines"
+    )
+    option(
+        "-e",
+        "--executable",
+        default=True,
+        action="store_true",
+        help="make setup file executable",
+    )
     option("--section", type=str, help="run section")
 
     args = parser.parse_args()
@@ -213,6 +234,7 @@ def commandline():
 
             if args.run:
                 builder.run()
+
 
 if __name__ == "__main__":
     commandline()

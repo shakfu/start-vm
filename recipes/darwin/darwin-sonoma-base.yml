@@ -1,0 +1,63 @@
+name: base
+config: darwin-base
+platform: darwin
+os: macos
+version: '14.5'
+release: sonoma
+sections:
+    - name: core
+      type: homebrew_packages
+      install:
+        - bat
+        - bdw-gc
+        - bison
+        - boost
+        - clang-format
+        - cmake
+        - cppcheck
+        - czmq
+        - d2
+        - ddh
+        - difftastic
+        - diskus
+        - dprint
+        - dua-cli
+        - dust
+        - fclones
+        - fd
+        - flac
+        - flex
+        - fzf
+        - go-task
+        - helix
+        - highway
+        - htop
+        - hyperfine
+        - lame
+        - liblo
+        - libogg
+        - libsamplerate
+        - libsndfile
+        - libsoundio
+        - libsoxr
+        - libvorbis
+        - marksman
+        - ninja
+        - opus
+        - opusfile
+        - pcre2
+        - portaudio
+        - portmidi
+        - ripgrep
+        - rlwrap
+        - rubberband
+        - sk
+        - sox
+        - speex
+        - sqlite
+        - tree
+        - typst
+        - wget
+        - xcodegen
+        - zstd
+
