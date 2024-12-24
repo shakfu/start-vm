@@ -31,7 +31,27 @@ import yaml
 
 from typing import Optional, Any
 
-DEBUG = True
+
+def getenv(envvar: str, default: bool = False) -> bool:
+    """Get environment variable or default.
+
+    Args:
+        envvar (str): name of environment variable
+        default (bool): default value
+
+    >>> getenv("DEBUG", True)
+    True
+    """
+    if envvar in os.environ:
+        try:
+            res = bool(int(os.environ[envvar]))
+            return res
+        except ValueError:
+            pass
+    return default
+
+
+DEBUG = getenv("DEBUG", True)
 
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 LOG_FORMAT = "%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s"
@@ -39,7 +59,7 @@ logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, stream=sys.stdout)
 
 
 class Builder(abc.ABC):
-    """Abstract base class with standard interface / common functions"""
+    """Abstract base class with standard interface / common functions."""
 
     prefix = ""
     suffix = ""
