@@ -18,7 +18,7 @@ COLOR_ERROR="\033[1;31m"
 COLOR_RESET="\033[0m"
 
 # Paths
-CONFIG_DIR="config/ubuntu"
+CONFIG_DIR="config/"
 DEFAULT_DIR="default"
 CONFIG_DST="$HOME/.config"
 
@@ -218,7 +218,7 @@ install_default_files() {
 install_config_files() {
     print_header "Installing .config folders"
 
-    if [ -z "ubuntu" ] || [ ! -d "$CONFIG_DIR" ]; then
+    if [ -z "" ] || [ ! -d "$CONFIG_DIR" ]; then
         if [ "$VERBOSE" = true ]; then
             print_warning "Config directory not found: $CONFIG_DIR"
         fi

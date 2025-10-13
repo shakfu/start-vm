@@ -1,5 +1,4 @@
 name: base
-config: focal
 platform: linux
 os: ubuntu
 version: '20.04'

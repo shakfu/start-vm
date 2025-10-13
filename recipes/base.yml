@@ -2,8 +2,8 @@ name: base
 config: base
 platform: linux
 os: debian
-version: '10'
-release: buster
+version: '12'
+release: bookworm
 sections:
     - name: core
       type: debian_packages
@@ -54,20 +54,19 @@ sections:
     - name: database
       type: debian_packages
       pre_install: |
-        declare DEB="deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
-        echo "$DEB" | sudo tee --append /etc/apt/sources.list.d/pgdg.list
-        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-        sudo apt-get update
+        # Add PostgreSQL repository for Debian 12 (Bookworm)
+        sudo apt install -y curl ca-certificates
+        sudo install -d /usr/share/postgresql-common/pgdg
+        sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+        sudo apt update
       install:
         - libpq-dev
-        - postgresql-client-9.6
-        - postgresql-9.6
-        - postgresql-contrib-9.6
-        - postgresql-plpython3-9.6
-        - postgresql-9.6-pllua
+        - postgresql-client-15
+        - postgresql-15
+        - postgresql-contrib
+        - postgresql-plpython3-15
         - luajit
-        - postgresql-9.6-pgtap
-        - pgtap
       post_install: |
         sudo -u postgres createuser -s $USER
         sudo -u postgres createdb $USER

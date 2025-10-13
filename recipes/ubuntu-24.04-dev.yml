@@ -1,7 +1,11 @@
-# Inherits from ubuntu-dev and overrides version-specific fields
-inherits: ubuntu-dev
+# Inherits from ubuntu-dev and overrides version to 24.04
+# Includes all base and dev tools plus modern utilities
+name: ubuntu-24.04-dev
+platform: linux
+os: ubuntu
 version: '24.04'
 release: noble
+inherits: ubuntu-dev
 sections:
     - name: modern-tools
       type: debian_packages

@@ -1,6 +1,6 @@
 # start-vm: single-step setups for fresh machines
 
-Generates bash scripts and dockerfiles from yaml `recipe` files to provide sigle-step setups of virtual or physical machines.
+Generates install/uninstall bash, python, and powershell scripts and dockerfiles from yaml `recipe` files to provide sigle-step setups of virtual or physical machines.
 
 ## ⚠️ SECURITY WARNING
 
@@ -73,8 +73,8 @@ A minimal ubuntu 24.04 LTS `base.yml` is implemented. Forks and pull requests fo
 
 ```text
 usage: start_vm.py [-h] [-d] [-b] [-p] [-y] [-c] [-f] [-r] [-s] [-e] [--section SECTION]
-                   [--debug] [-n] [--lockfile]
-                   recipe [recipe ...]
+                   [--debug] [-n] [--lockfile] [--validate] [-v]
+                   [recipe ...]
 
 Install Packages
 
@@ -96,6 +96,8 @@ options:
   --debug               enable debug logging
   -n, --dry-run         show commands without executing
   --lockfile            generate lockfile with pinned versions
+  --validate            validate config/ and default/ directories
+  -v, --verbose         verbose output (for --validate)
 ```
 
 ## The Model
@@ -442,13 +444,48 @@ Python scripts support all section types:
 5. **Professional**: argparse interface with comprehensive help
 6. **Portable**: Single self-contained script file
 
+## Repository Maintenance
+
+### Validating Config and Default Directories
+
+To audit and maintain the `config/` and `default/` directories, use the built-in validation feature:
+
+```bash
+# Basic validation report
+python3 start_vm.py --validate
+
+# Verbose mode with detailed statistics
+python3 start_vm.py --validate --verbose
+
+# Short form
+python3 start_vm.py --validate -v
+```
+
+The validation script identifies:
+- **Orphaned config directories**: Config dirs that exist but aren't referenced by any recipe
+- **Empty config directories**: Config dirs with no actual files (only `.keep`)
+- **Old/stale files**: Files not modified in over a year
+- **Platform-specific files**: Which default files are Linux/macOS/Windows-specific
+- **Usage statistics**: File counts, sizes, modification dates
+
+See [DOTFILES_VALIDATION.md](DOTFILES_VALIDATION.md) for detailed documentation.
+
+### Recommended Maintenance Schedule
+
+- **Monthly**: Run basic validation during development
+- **Quarterly**: Deep review of old files (>1 year) and cleanup recommendations
+- **After removing recipes**: Check for orphaned config directories to archive
+
+### Related Documentation
+
+- **RECIPE_SCHEMA.md**: Complete YAML recipe specification
+- **CONTRIBUTING.md**: Guidelines for creating and testing recipes
+- **TROUBLESHOOTING.md**: Common issues and solutions
+- **DOTFILES_VALIDATION.md**: Guide to validating config/default directories
+- **PRUNING_RECOMMENDATION.md**: Analysis of recipes to prune
+- **CONFIG_CLEANUP_COMPLETED.md**: Record of config field cleanup
+
 ## TODO
-
-- [x] Generate python install/uninstall scripts
-
-- [ ] create uninstall scripts for shell/PowerShell (reverse the install)
-
-- [x] add powershell template for windows and windows pkg manager support
 
 - [ ] add parameters which can be interpolated initially at the yaml level
 

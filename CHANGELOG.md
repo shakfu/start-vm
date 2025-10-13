@@ -19,6 +19,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Added
 
+- **Integrated Dotfiles Validation**: Validation functionality now built into start_vm.py
+  - New `--validate` flag to audit config/ and default/ directories
+  - New `-v, --verbose` flag for detailed validation statistics
+  - `DotfilesValidator` class integrated into start_vm.py (370 lines)
+  - Identifies orphaned config directories (exist but not referenced by recipes)
+  - Identifies empty config directories (only .keep files)
+  - Finds old/stale files not modified in >1 year
+  - Platform-specific file classification (Linux/macOS/Windows/cross-platform)
+  - Detailed statistics: file counts, sizes, modification dates
+  - Cleanup recommendations based on findings
+  - Usage: `python3 start_vm.py --validate [-v]`
+  - Standalone `validate_dotfiles.py` now deprecated (still available for --max-age option)
+  - **DOTFILES_VALIDATION.md**: Complete guide to using validation
+    - Usage examples with integrated and legacy commands
+    - Understanding validation reports
+    - Common scenarios and solutions
+    - Integration with repository maintenance workflows
+    - Advanced usage patterns and filtering
+    - Current repository status snapshot
+
 - **Comprehensive Documentation Suite**: Four new documentation files for better project understanding and contribution
   - **RECIPE_SCHEMA.md**: Formal specification of recipe file structure
     - Complete field reference with types and descriptions
@@ -201,7 +221,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   - `--debug`: Enable debug-level logging
   - `--dry-run` / `-n`: Show commands without executing
 
+### Deprecated
+
+- **validate_dotfiles.py**: Standalone validation script deprecated in favor of integrated validation
+  - Validation now built into start_vm.py via `--validate` flag
+  - Standalone script still available for backwards compatibility
+  - Only unique feature: `--max-age` option for custom age thresholds
+  - Will be removed in future version
+  - Displays deprecation warning when run
+
 ### Changed
+
+- **CLI Arguments**: Recipe argument now optional when using `--validate` flag
+  - Changed `recipe` from required (`nargs="+"`) to optional (`nargs="*"`)
+  - Allows `python3 start_vm.py --validate` without specifying recipes
+  - Error shown if recipes not provided for non-validate operations
+
+- **Config Field Cleanup**: Removed config field from 9 recipes that referenced non-existent directories
+  - Removed config field from: ubuntu-base, ubuntu-dev, ubuntu-24.04-dev, ubuntu-pinned
+  - Removed config field from: focal, console (Linux recipes)
+  - Removed config field from: windows10, windows11, windows-pinned (Windows recipes)
+  - All remaining config field references now point to existing directories
+  - See CONFIG_CLEANUP_COMPLETED.md for details
 
 - **Error Handling**: Dramatically improved throughout codebase
   - YAML loading with specific error handling for FileNotFoundError and YAMLError

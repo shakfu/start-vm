@@ -1,5 +1,4 @@
 name: console
-config: debian
 platform: linux
 os: debian
 version: '11'

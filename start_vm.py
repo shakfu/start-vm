@@ -7,6 +7,10 @@ Features:
 - from a yaml 'recipe', it can generate
     - shell automated or step-by-step setup files
     - docker build files
+    - powershell scripts for Windows
+    - Python install/uninstall scripts
+- validate config/ and default/ directories
+- generate lockfiles for reproducible installations
 
 Requires:
     - pyyaml
@@ -29,7 +33,8 @@ from datetime import datetime
 import jinja2
 import yaml
 
-from typing import Optional, Any, Tuple
+from typing import Optional, Any, Tuple, Dict, List, Set
+from collections import defaultdict
 
 # Default log level - will be configured by CLI flag
 LOG_FORMAT = "%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s"
@@ -111,6 +116,376 @@ class PackageSpec:
 
     def __repr__(self):
         return f"PackageSpec(name={self.name}, operator={self.operator}, version={self.version})"
+
+
+class DotfilesValidator:
+    """Validator for config/ and default/ directories."""
+
+    def __init__(self, repo_root: pathlib.Path = None):
+        self.repo_root = repo_root or pathlib.Path(__file__).parent
+        self.recipes_dir = self.repo_root / "recipes"
+        self.config_dir = self.repo_root / "config"
+        self.default_dir = self.repo_root / "default"
+
+        # Results
+        self.recipes: Dict[str, dict] = {}
+        self.config_refs: Dict[str, List[str]] = defaultdict(list)
+        self.config_dirs: Set[str] = set()
+        self.default_files: Set[str] = set()
+
+    def load_recipes(self) -> None:
+        """Load all recipe files and extract config references."""
+        if not self.recipes_dir.exists():
+            print(f"ERROR: Recipes directory not found: {self.recipes_dir}")
+            sys.exit(1)
+
+        for recipe_file in sorted(self.recipes_dir.glob("*.yml")):
+            try:
+                with open(recipe_file) as f:
+                    data = yaml.safe_load(f)
+
+                recipe_name = recipe_file.stem
+                self.recipes[recipe_name] = data
+
+                # Track config directory references
+                if "config" in data and data["config"]:
+                    config_name = data["config"]
+                    self.config_refs[config_name].append(recipe_name)
+
+            except Exception as e:
+                print(f"WARNING: Failed to load {recipe_file.name}: {e}")
+
+    def scan_config_dirs(self) -> None:
+        """Scan config/ directory to find all subdirectories."""
+        if not self.config_dir.exists():
+            print(f"WARNING: Config directory not found: {self.config_dir}")
+            return
+
+        for item in self.config_dir.iterdir():
+            if item.is_dir() and not item.name.startswith("."):
+                self.config_dirs.add(item.name)
+
+    def scan_default_files(self) -> None:
+        """Scan default/ directory to find all files."""
+        if not self.default_dir.exists():
+            print(f"WARNING: Default directory not found: {self.default_dir}")
+            return
+
+        for item in self.default_dir.iterdir():
+            if not item.name.startswith(".git"):
+                self.default_files.add(item.name)
+
+    def get_config_dir_stats(self, config_name: str) -> Dict:
+        """Get statistics about a config directory."""
+        config_path = self.config_dir / config_name
+        if not config_path.exists():
+            return {"exists": False}
+
+        files = list(config_path.rglob("*"))
+        file_list = [f for f in files if f.is_file()]
+
+        if not file_list:
+            return {
+                "exists": True,
+                "empty": True,
+                "file_count": 0,
+                "total_size": 0,
+            }
+
+        # Get modification times
+        mod_times = [f.stat().st_mtime for f in file_list]
+        oldest = min(mod_times)
+        newest = max(mod_times)
+
+        # Calculate total size
+        total_size = sum(f.stat().st_size for f in file_list)
+
+        return {
+            "exists": True,
+            "empty": False,
+            "file_count": len(file_list),
+            "total_size": total_size,
+            "oldest_mod": datetime.fromtimestamp(oldest),
+            "newest_mod": datetime.fromtimestamp(newest),
+            "age_days": (datetime.now() - datetime.fromtimestamp(newest)).days,
+        }
+
+    def get_default_file_stats(self, file_name: str) -> Dict:
+        """Get statistics about a default file or directory."""
+        file_path = self.default_dir / file_name
+        if not file_path.exists():
+            return {"exists": False}
+
+        stat = file_path.stat()
+        mod_time = datetime.fromtimestamp(stat.st_mtime)
+
+        result = {
+            "exists": True,
+            "is_dir": file_path.is_dir(),
+            "size": stat.st_size,
+            "modified": mod_time,
+            "age_days": (datetime.now() - mod_time).days,
+        }
+
+        if file_path.is_dir():
+            files = list(file_path.rglob("*"))
+            file_list = [f for f in files if f.is_file()]
+            result["file_count"] = len(file_list)
+            result["total_size"] = sum(f.stat().st_size for f in file_list)
+
+        return result
+
+    def find_orphaned_config_dirs(self) -> List[Tuple[str, Dict]]:
+        """Find config directories not referenced by any recipe."""
+        orphaned = []
+        for config_name in sorted(self.config_dirs):
+            if config_name not in self.config_refs:
+                stats = self.get_config_dir_stats(config_name)
+                orphaned.append((config_name, stats))
+        return orphaned
+
+    def find_empty_config_dirs(self) -> List[str]:
+        """Find config directories that exist but are empty or only have .keep files."""
+        empty = []
+        for config_name in sorted(self.config_dirs):
+            config_path = self.config_dir / config_name
+            files = [
+                f
+                for f in config_path.rglob("*")
+                if f.is_file() and f.name != ".keep"
+            ]
+            if not files:
+                empty.append(config_name)
+        return empty
+
+    def find_missing_config_dirs(self) -> List[Tuple[str, List[str]]]:
+        """Find config directories referenced by recipes but don't exist."""
+        missing = []
+        for config_name, recipe_names in sorted(self.config_refs.items()):
+            if config_name not in self.config_dirs:
+                missing.append((config_name, recipe_names))
+        return missing
+
+    def analyze_config_age(self, max_age_days: int = 365) -> List[Tuple[str, Dict]]:
+        """Find config directories that haven't been modified in a long time."""
+        old_configs = []
+        for config_name in sorted(self.config_dirs):
+            stats = self.get_config_dir_stats(config_name)
+            if stats.get("exists") and not stats.get("empty"):
+                if stats["age_days"] > max_age_days:
+                    old_configs.append((config_name, stats))
+        return old_configs
+
+    def analyze_default_age(self, max_age_days: int = 365) -> List[Tuple[str, Dict]]:
+        """Find default files that haven't been modified in a long time."""
+        old_files = []
+        for file_name in sorted(self.default_files):
+            stats = self.get_default_file_stats(file_name)
+            if stats.get("exists"):
+                if stats["age_days"] > max_age_days:
+                    old_files.append((file_name, stats))
+        return old_files
+
+    def check_default_files_platform_specific(self) -> Dict[str, List[str]]:
+        """Identify default files that may be platform-specific."""
+        platform_indicators = {
+            "linux": [".xinitrc", ".gtkrc", ".bashrc", "i3", "awesome"],
+            "macos": [".bash_profile", "Brewfile"],
+            "windows": [".ps1", "powershell"],
+        }
+
+        results = defaultdict(list)
+        for file_name in sorted(self.default_files):
+            for platform, indicators in platform_indicators.items():
+                if any(ind in file_name.lower() for ind in indicators):
+                    results[platform].append(file_name)
+                    break
+            else:
+                results["cross-platform"].append(file_name)
+
+        return results
+
+    def generate_report(self, verbose: bool = False) -> str:
+        """Generate a comprehensive validation report."""
+        lines = []
+        lines.append("=" * 80)
+        lines.append("DOTFILES VALIDATION REPORT")
+        lines.append("=" * 80)
+        lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        lines.append("")
+
+        # Summary
+        lines.append("SUMMARY")
+        lines.append("-" * 80)
+        lines.append(f"Total recipes: {len(self.recipes)}")
+        lines.append(f"Recipes with config field: {len(self.config_refs)}")
+        lines.append(f"Config directories found: {len(self.config_dirs)}")
+        lines.append(f"Default files/directories: {len(self.default_files)}")
+        lines.append("")
+
+        # Config directory usage
+        lines.append("CONFIG DIRECTORY USAGE")
+        lines.append("-" * 80)
+        if self.config_refs:
+            for config_name in sorted(self.config_refs.keys()):
+                recipes = self.config_refs[config_name]
+                exists = "✅" if config_name in self.config_dirs else "❌"
+                lines.append(f"{exists} config/{config_name}/ -> used by {len(recipes)} recipe(s): {', '.join(recipes)}")
+
+                if verbose and config_name in self.config_dirs:
+                    stats = self.get_config_dir_stats(config_name)
+                    if not stats.get("empty"):
+                        lines.append(
+                            f"     Files: {stats['file_count']}, "
+                            f"Size: {stats['total_size']:,} bytes, "
+                            f"Last modified: {stats['newest_mod'].strftime('%Y-%m-%d')} "
+                            f"({stats['age_days']} days ago)"
+                        )
+        else:
+            lines.append("No recipes reference config directories")
+        lines.append("")
+
+        # Orphaned config directories
+        orphaned = self.find_orphaned_config_dirs()
+        lines.append("ORPHANED CONFIG DIRECTORIES")
+        lines.append("-" * 80)
+        if orphaned:
+            lines.append(
+                "These config directories exist but are not referenced by any recipe:"
+            )
+            for config_name, stats in orphaned:
+                if stats.get("empty"):
+                    lines.append(f"⚠️  config/{config_name}/ (EMPTY - only .keep file)")
+                else:
+                    lines.append(
+                        f"⚠️  config/{config_name}/ "
+                        f"({stats['file_count']} files, "
+                        f"{stats['total_size']:,} bytes, "
+                        f"last modified {stats['age_days']} days ago)"
+                    )
+            lines.append("")
+            lines.append("RECOMMENDATION: Review these directories for removal or archive")
+        else:
+            lines.append("✅ No orphaned config directories found")
+        lines.append("")
+
+        # Empty config directories
+        empty = self.find_empty_config_dirs()
+        lines.append("EMPTY CONFIG DIRECTORIES")
+        lines.append("-" * 80)
+        if empty:
+            lines.append(
+                "These config directories exist but are empty (only .keep files):"
+            )
+            for config_name in empty:
+                used_by = self.config_refs.get(config_name, [])
+                if used_by:
+                    lines.append(
+                        f"⚠️  config/{config_name}/ (referenced by: {', '.join(used_by)})"
+                    )
+                else:
+                    lines.append(f"⚠️  config/{config_name}/ (not referenced)")
+            lines.append("")
+            lines.append("RECOMMENDATION: Remove empty directories or populate them")
+        else:
+            lines.append("✅ No empty config directories found")
+        lines.append("")
+
+        # Old config directories
+        old_configs = self.analyze_config_age(max_age_days=365)
+        lines.append("OLD CONFIG DIRECTORIES (>1 year since modification)")
+        lines.append("-" * 80)
+        if old_configs:
+            for config_name, stats in old_configs:
+                used_by = self.config_refs.get(config_name, ["not referenced"])
+                lines.append(
+                    f"📅 config/{config_name}/ - "
+                    f"Last modified: {stats['newest_mod'].strftime('%Y-%m-%d')} "
+                    f"({stats['age_days']} days ago) - "
+                    f"Used by: {', '.join(used_by)}"
+                )
+            lines.append("")
+            lines.append("RECOMMENDATION: Review for relevance to current OS versions")
+        else:
+            lines.append("✅ No old config directories found")
+        lines.append("")
+
+        # Default files analysis
+        lines.append("DEFAULT FILES/DIRECTORIES")
+        lines.append("-" * 80)
+        platform_files = self.check_default_files_platform_specific()
+        for platform in ["linux", "macos", "windows", "cross-platform"]:
+            if platform in platform_files:
+                lines.append(f"{platform.upper()}:")
+                for file_name in platform_files[platform]:
+                    stats = self.get_default_file_stats(file_name)
+                    if stats.get("is_dir"):
+                        lines.append(
+                            f"  📁 {file_name}/ "
+                            f"({stats.get('file_count', 0)} files, "
+                            f"{stats.get('total_size', 0):,} bytes)"
+                        )
+                    else:
+                        lines.append(f"  📄 {file_name} ({stats['size']:,} bytes)")
+                lines.append("")
+        lines.append("")
+
+        # Old default files
+        old_defaults = self.analyze_default_age(max_age_days=365)
+        lines.append("OLD DEFAULT FILES (>1 year since modification)")
+        lines.append("-" * 80)
+        if old_defaults:
+            for file_name, stats in old_defaults:
+                lines.append(
+                    f"📅 {file_name} - "
+                    f"Last modified: {stats['modified'].strftime('%Y-%m-%d')} "
+                    f"({stats['age_days']} days ago)"
+                )
+            lines.append("")
+            lines.append("RECOMMENDATION: Review for relevance and update or remove")
+        else:
+            lines.append("✅ No old default files found")
+        lines.append("")
+
+        # Recommendations summary
+        lines.append("CLEANUP RECOMMENDATIONS")
+        lines.append("-" * 80)
+        recommendations = []
+
+        if orphaned:
+            recommendations.append(
+                f"1. Remove or archive {len(orphaned)} orphaned config director{'y' if len(orphaned) == 1 else 'ies'}"
+            )
+        if empty:
+            recommendations.append(
+                f"2. Remove {len(empty)} empty config director{'y' if len(empty) == 1 else 'ies'}"
+            )
+        if old_configs:
+            recommendations.append(
+                f"3. Review {len(old_configs)} config director{'y' if len(old_configs) == 1 else 'ies'} not modified in >1 year"
+            )
+        if old_defaults:
+            recommendations.append(
+                f"4. Review {len(old_defaults)} default file(s) not modified in >1 year"
+            )
+
+        if recommendations:
+            for rec in recommendations:
+                lines.append(rec)
+        else:
+            lines.append("✅ No cleanup needed - all dotfiles appear to be in use")
+
+        lines.append("")
+        lines.append("=" * 80)
+
+        return "\n".join(lines)
+
+    def run(self, verbose: bool = False) -> str:
+        """Run the complete validation."""
+        self.load_recipes()
+        self.scan_config_dirs()
+        self.scan_default_files()
+        return self.generate_report(verbose=verbose)
 
 
 class Builder(abc.ABC):
@@ -540,7 +915,7 @@ def commandline():
     parser = argparse.ArgumentParser(description="Install Packages")
     option = parser.add_argument
 
-    option("recipe", nargs="+", help="recipes to install")
+    option("recipe", nargs="*", help="recipes to install")
     option("-d", "--docker", action="store_true", help="generate dockerfile")
     option("-b", "--shell", action="store_true", help="generate shell file (Linux/macOS)")
     option("-p", "--powershell", action="store_true", help="generate PowerShell file (Windows)")
@@ -554,6 +929,8 @@ def commandline():
     option("--debug", action="store_true", help="enable debug logging")
     option("-n", "--dry-run", action="store_true", help="show commands without executing")
     option("--lockfile", action="store_true", help="generate lockfile with pinned versions")
+    option("--validate", action="store_true", help="validate config/ and default/ directories")
+    option("-v", "--verbose", action="store_true", help="verbose output (for --validate)")
 
     args = parser.parse_args()
 
@@ -562,6 +939,17 @@ def commandline():
         logging.getLogger().setLevel(logging.DEBUG)
     else:
         logging.getLogger().setLevel(logging.INFO)
+
+    # Handle validation mode (doesn't require recipes)
+    if args.validate:
+        validator = DotfilesValidator()
+        report = validator.run(verbose=args.verbose)
+        print(report)
+        return
+
+    # Check if recipes were provided for non-validate operations
+    if not args.recipe:
+        parser.error("the following arguments are required: recipe (unless using --validate)")
 
     for recipe in args.recipe:
         if args.section:

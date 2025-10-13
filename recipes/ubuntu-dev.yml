@@ -1,5 +1,10 @@
 # Inherits all configuration from ubuntu-base
-# Only needs to define what's different or additional
+# Adds development tools to the base configuration
+name: ubuntu-dev
+platform: linux
+os: ubuntu
+version: '22.04'
+release: jammy
 inherits: ubuntu-base
 sections:
     - name: dev-tools

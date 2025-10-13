@@ -1,5 +1,4 @@
 name: windows-pinned
-config: windows
 platform: windows
 os: windows
 version: '11'

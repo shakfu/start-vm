@@ -1,5 +1,4 @@
 name: ubuntu-base
-config: ubuntu
 platform: linux
 os: ubuntu
 version: '22.04'
