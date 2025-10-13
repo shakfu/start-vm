@@ -1,0 +1,11 @@
+# Inherits from ubuntu-dev and overrides version-specific fields
+inherits: ubuntu-dev
+version: '24.04'
+release: noble
+sections:
+    - name: modern-tools
+      type: debian_packages
+      install:
+        - ripgrep
+        - fd-find
+        - bat

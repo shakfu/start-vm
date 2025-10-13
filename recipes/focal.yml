@@ -1,9 +1,9 @@
 name: base
-config: disco
+config: focal
 platform: linux
 os: ubuntu
 version: '20.04'
-release: disco
+release: focal
 sections:
     - name: core
       type: debian_packages

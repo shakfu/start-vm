@@ -1,0 +1,119 @@
+name: base
+config: windows
+platform: windows
+os: windows
+version: '11'
+release: '23H2'
+sections:
+    - name: core-dev
+      type: winget_packages
+      pre_install: |
+        Write-Host "Updating winget sources..."
+        winget source update
+      install:
+        - Microsoft.VisualStudioCode
+        - Git.Git
+        - Microsoft.WindowsTerminal
+        - Microsoft.PowerShell
+        - 7zip.7zip
+        - Notepad++.Notepad++
+      post_install: |
+        Write-Host "Core development tools installed"
+
+    - name: python
+      type: winget_packages
+      install:
+        - Python.Python.3.12
+      post_install: |
+        Write-Host "Refreshing environment variables..."
+        refreshenv
+        Write-Host "Python installed. Verify with: python --version"
+
+    - name: python-packages
+      type: python_packages
+      install:
+        - pip
+        - wheel
+        - virtualenv
+        - ipython
+        - pytest
+        - black
+        - pylint
+        - requests
+
+    - name: dev-tools-choco
+      type: chocolatey_packages
+      install:
+        - nodejs-lts
+        - docker-desktop
+        - golang
+        - rust
+      post_install: |
+        Write-Host "Additional development tools installed via Chocolatey"
+
+    - name: browsers
+      type: winget_packages
+      install:
+        - Mozilla.Firefox
+        - Google.Chrome
+        - Microsoft.Edge
+
+    - name: utilities
+      type: winget_packages
+      install:
+        - VideoLAN.VLC
+        - Adobe.Acrobat.Reader.64-bit
+        - WinSCP.WinSCP
+        - PuTTY.PuTTY
+
+    - name: configuration
+      type: powershell
+      install: |
+        # Set execution policy for current user
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+        # Enable Developer Mode
+        Write-Host "Enabling Developer Mode..."
+        reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+
+        # Configure Git
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            git config --global core.autocrlf true
+            git config --global init.defaultBranch main
+            Write-Host "Git configured"
+        }
+
+        # Create common development directories
+        $devDirs = @(
+            "$env:USERPROFILE\dev",
+            "$env:USERPROFILE\projects",
+            "$env:USERPROFILE\.ssh"
+        )
+        foreach ($dir in $devDirs) {
+            if (-not (Test-Path $dir)) {
+                New-Item -ItemType Directory -Path $dir -Force | Out-Null
+                Write-Host "Created directory: $dir"
+            }
+        }
+
+    - name: wsl-setup
+      type: powershell
+      install: |
+        # Install WSL 2
+        Write-Host "Installing WSL 2..."
+        wsl --install
+        Write-Host "WSL 2 installation initiated. You may need to restart your computer."
+        Write-Host "After restart, run: wsl --set-default-version 2"
+        Write-Host "Then install Ubuntu: wsl --install -d Ubuntu"
+
+    - name: cleanup
+      type: powershell
+      install: |
+        Write-Host "Cleaning up temporary files..."
+        # Clear Windows temp directory
+        Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+        # Clear Chocolatey cache if installed
+        if (Get-Command choco -ErrorAction SilentlyContinue) {
+            choco cleanup --confirm
+        }
+        Write-Host "Cleanup completed"

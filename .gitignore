@@ -1,5 +1,5 @@
 .DS_Store
-.ruff_cache
+.*_cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -90,3 +90,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# ai
+.claude
+CLAUDE.md
+GEMINI.md
+AGENTS.md

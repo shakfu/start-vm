@@ -5,7 +5,7 @@ import os
 import sys
 from datetime import datetime
 
-HASH = hashlib.md5(str(datetime.now())).hexdigest()
+HASH = hashlib.md5(str(datetime.now()).encode()).hexdigest()
 
 def normalize(path, file_func=None, dir_func=None):
     ''' recursive normalization of directory and file names
@@ -34,9 +34,11 @@ def norm_func(path):
     entry = os.path.basename(path)
     parent = os.path.dirname(path)
     entry_norm = entry.lower().replace(' ', '-')
-    p = os.path.join(parent, entry_norm)+HASH
+    # Use proper suffix removal instead of strip() which removes characters
+    p = os.path.join(parent, entry_norm) + HASH
     os.rename(path, p)
-    new = p.strip(HASH)
+    # Remove the hash suffix properly
+    new = p[:-len(HASH)] if p.endswith(HASH) else p
     os.rename(p, new)
     return new
 

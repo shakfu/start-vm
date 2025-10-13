@@ -1,0 +1,20 @@
+# Inherits all configuration from ubuntu-base
+# Only needs to define what's different or additional
+inherits: ubuntu-base
+sections:
+    - name: dev-tools
+      type: debian_packages
+      install:
+        - nodejs
+        - npm
+        - docker.io
+        - postgresql-client
+
+    - name: dev-python-packages
+      type: python_packages
+      install:
+        - pytest
+        - black
+        - pylint
+        - ipython
+        - jupyter

@@ -1,0 +1,39 @@
+name: windows-pinned
+config: windows
+platform: windows
+os: windows
+version: '11'
+release: '23H2'
+sections:
+    - name: dev-tools
+      type: winget_packages
+      pre_install: |
+        Write-Host "Updating winget sources..."
+        winget source update
+      install:
+        - Microsoft.VisualStudioCode  # Latest version
+        - Git.Git==2.42.0
+        - Microsoft.WindowsTerminal==1.18.2822.0
+        - Microsoft.PowerShell==7.4.0
+        - Python.Python.3.12==3.12.0
+      post_install: |
+        Write-Host "Development tools with pinned versions installed"
+
+    - name: python-packages
+      type: python_packages
+      install:
+        - pip==23.3.1
+        - wheel==0.41.3
+        - virtualenv==20.24.6
+        - pytest==7.4.3
+        - black==23.11.0
+        - requests==2.31.0
+        - flask==3.0.0
+
+    - name: chocolatey-tools
+      type: chocolatey_packages
+      install:
+        - nodejs-lts==20.10.0
+        - docker-desktop==4.25.2
+        - golang==1.21.5
+        - rust==1.74.1

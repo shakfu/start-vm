@@ -1,0 +1,35 @@
+name: ubuntu-base
+config: ubuntu
+platform: linux
+os: ubuntu
+version: '22.04'
+release: jammy
+sections:
+    - name: core
+      type: debian_packages
+      pre_install: |
+        sudo apt update && sudo apt dist-upgrade -y
+      install:
+        - build-essential
+        - curl
+        - wget
+        - git
+        - vim
+        - htop
+        - ncdu
+      post_install: |
+        echo "Core packages installed"
+
+    - name: python
+      type: debian_packages
+      install:
+        - python3
+        - python3-pip
+        - python3-venv
+
+    - name: python-packages
+      type: python_packages
+      install:
+        - pip
+        - wheel
+        - virtualenv
