@@ -468,8 +468,6 @@ The validation script identifies:
 - **Platform-specific files**: Which default files are Linux/macOS/Windows-specific
 - **Usage statistics**: File counts, sizes, modification dates
 
-See [DOTFILES_VALIDATION.md](DOTFILES_VALIDATION.md) for detailed documentation.
-
 ### Recommended Maintenance Schedule
 
 - **Monthly**: Run basic validation during development
@@ -478,12 +476,9 @@ See [DOTFILES_VALIDATION.md](DOTFILES_VALIDATION.md) for detailed documentation.
 
 ### Related Documentation
 
-- **RECIPE_SCHEMA.md**: Complete YAML recipe specification
+- **docs/recipde_schema.md**: Complete YAML recipe specification
+- **docs/troubleshooting.md**: Common issues and solutions
 - **CONTRIBUTING.md**: Guidelines for creating and testing recipes
-- **TROUBLESHOOTING.md**: Common issues and solutions
-- **DOTFILES_VALIDATION.md**: Guide to validating config/default directories
-- **PRUNING_RECOMMENDATION.md**: Analysis of recipes to prune
-- **CONFIG_CLEANUP_COMPLETED.md**: Record of config field cleanup
 
 ## TODO
 
