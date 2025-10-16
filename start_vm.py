@@ -1,22 +1,5 @@
 #!/usr/bin/env python3
-"""
-start-vm: 1 step machine setups
-
-Features:
-
-- from a yaml 'recipe', it can generate
-    - shell automated or step-by-step setup files
-    - docker build files
-    - powershell scripts for Windows
-    - Python install/uninstall scripts
-- validate config/ and default/ directories
-- generate lockfiles for reproducible installations
-
-Requires:
-    - pyyaml
-    - jinja2
-
-"""
+"""start-vm: 1 step machine setups"""
 
 import abc
 import argparse
@@ -28,13 +11,12 @@ import re
 import stat
 import subprocess
 import sys
+from collections import defaultdict
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import jinja2
 import yaml
-
-from typing import Optional, Any, Tuple, Dict, List, Set
-from collections import defaultdict
 
 # Default log level - will be configured by CLI flag
 LOG_FORMAT = "%(relativeCreated)-5d %(levelname)-5s: %(name)-15s %(message)s"
@@ -47,24 +29,28 @@ class PackageSpec:
 
     # Version specifier patterns for different package managers
     PATTERNS = {
-        'python': re.compile(r'^([a-zA-Z0-9_\-\.]+)(==|>=|<=|>|<|~=|!=)?(.+)?$'),
-        'debian': re.compile(r'^([a-zA-Z0-9_\-\.+]+)(=)?(.+)?$'),
-        'ruby': re.compile(r'^([a-zA-Z0-9_\-\.]+)(:)?(.+)?$'),
-        'rust': re.compile(r'^([a-zA-Z0-9_\-\.]+)(@)?(.+)?$'),
-        'npm': re.compile(r'^([a-zA-Z0-9_\-\.@/]+)(@)?(.+)?$'),
-        'winget': re.compile(r'^([a-zA-Z0-9_\-\.]+)(==)?(.+)?$'),
-        'chocolatey': re.compile(r'^([a-zA-Z0-9_\-\.]+)(==)?(.+)?$'),
-        'homebrew': re.compile(r'^([a-zA-Z0-9_\-\.@/]+)(@)?(.+)?$'),
+        "python": re.compile(r"^([a-zA-Z0-9_\-\.]+)(==|>=|<=|>|<|~=|!=)?(.+)?$"),
+        "debian": re.compile(r"^([a-zA-Z0-9_\-\.+]+)(=)?(.+)?$"),
+        "ruby": re.compile(r"^([a-zA-Z0-9_\-\.]+)(:)?(.+)?$"),
+        "rust": re.compile(r"^([a-zA-Z0-9_\-\.]+)(@)?(.+)?$"),
+        "npm": re.compile(r"^([a-zA-Z0-9_\-\.@/]+)(@)?(.+)?$"),
+        "winget": re.compile(r"^([a-zA-Z0-9_\-\.]+)(==)?(.+)?$"),
+        "chocolatey": re.compile(r"^([a-zA-Z0-9_\-\.]+)(==)?(.+)?$"),
+        "homebrew": re.compile(r"^([a-zA-Z0-9_\-\.@/]+)(@)?(.+)?$"),
     }
 
-    def __init__(self, package_string: str, package_type: str = 'python'):
+    def __init__(self, package_string: str, package_type: str = "python"):
         self.original = package_string
         self.package_type = package_type
-        self.name, self.operator, self.version = self._parse(package_string, package_type)
+        self.name, self.operator, self.version = self._parse(
+            package_string, package_type
+        )
 
-    def _parse(self, pkg_str: str, pkg_type: str) -> Tuple[str, Optional[str], Optional[str]]:
+    def _parse(
+        self, pkg_str: str, pkg_type: str
+    ) -> Tuple[str, Optional[str], Optional[str]]:
         """Parse package string into name, operator, and version."""
-        pattern = self.PATTERNS.get(pkg_type, self.PATTERNS['python'])
+        pattern = self.PATTERNS.get(pkg_type, self.PATTERNS["python"])
         match = pattern.match(pkg_str.strip())
 
         if not match:
@@ -81,26 +67,30 @@ class PackageSpec:
         """Check if package has version constraint."""
         return self.version is not None
 
-    def to_string(self, format: str = 'native') -> str:
+    def to_string(self, format: str = "native") -> str:
         """Convert to package manager specific string format."""
         if not self.has_version():
             return self.name
 
-        if format == 'python':
+        if format == "python":
             return f"{self.name}{self.operator or '=='}{self.version}"
-        elif format == 'debian':
+        elif format == "debian":
             return f"{self.name}={self.version}" if self.version else self.name
-        elif format == 'ruby':
+        elif format == "ruby":
             return f"{self.name}:{self.version}" if self.version else self.name
-        elif format == 'rust':
+        elif format == "rust":
             return f"{self.name}@{self.version}" if self.version else self.name
-        elif format == 'npm':
+        elif format == "npm":
             return f"{self.name}@{self.version}" if self.version else self.name
-        elif format == 'winget':
-            return f"{self.name} --version {self.version}" if self.version else self.name
-        elif format == 'chocolatey':
-            return f"{self.name} --version={self.version}" if self.version else self.name
-        elif format == 'homebrew':
+        elif format == "winget":
+            return (
+                f"{self.name} --version {self.version}" if self.version else self.name
+            )
+        elif format == "chocolatey":
+            return (
+                f"{self.name} --version={self.version}" if self.version else self.name
+            )
+        elif format == "homebrew":
             return f"{self.name}@{self.version}" if self.version else self.name
         else:
             return self.original
@@ -108,10 +98,10 @@ class PackageSpec:
     def to_lockfile_entry(self) -> dict:
         """Convert to lockfile entry format."""
         return {
-            'name': self.name,
-            'version': self.version,
-            'operator': self.operator,
-            'original': self.original,
+            "name": self.name,
+            "version": self.version,
+            "operator": self.operator,
+            "original": self.original,
         }
 
     def __repr__(self):
@@ -250,9 +240,7 @@ class DotfilesValidator:
         for config_name in sorted(self.config_dirs):
             config_path = self.config_dir / config_name
             files = [
-                f
-                for f in config_path.rglob("*")
-                if f.is_file() and f.name != ".keep"
+                f for f in config_path.rglob("*") if f.is_file() and f.name != ".keep"
             ]
             if not files:
                 empty.append(config_name)
@@ -330,7 +318,9 @@ class DotfilesValidator:
             for config_name in sorted(self.config_refs.keys()):
                 recipes = self.config_refs[config_name]
                 exists = "✅" if config_name in self.config_dirs else "❌"
-                lines.append(f"{exists} config/{config_name}/ -> used by {len(recipes)} recipe(s): {', '.join(recipes)}")
+                lines.append(
+                    f"{exists} config/{config_name}/ -> used by {len(recipes)} recipe(s): {', '.join(recipes)}"
+                )
 
                 if verbose and config_name in self.config_dirs:
                     stats = self.get_config_dir_stats(config_name)
@@ -364,7 +354,9 @@ class DotfilesValidator:
                         f"last modified {stats['age_days']} days ago)"
                     )
             lines.append("")
-            lines.append("RECOMMENDATION: Review these directories for removal or archive")
+            lines.append(
+                "RECOMMENDATION: Review these directories for removal or archive"
+            )
         else:
             lines.append("✅ No orphaned config directories found")
         lines.append("")
@@ -505,13 +497,20 @@ class Builder(abc.ABC):
 
     # Valid section types
     VALID_SECTION_TYPES = {
-        'debian_packages', 'python_packages', 'ruby_packages',
-        'rust_packages', 'rlang_packages', 'homebrew_packages', 'shell',
-        'winget_packages', 'chocolatey_packages', 'powershell'
+        "debian_packages",
+        "python_packages",
+        "ruby_packages",
+        "rust_packages",
+        "rlang_packages",
+        "homebrew_packages",
+        "shell",
+        "winget_packages",
+        "chocolatey_packages",
+        "powershell",
     }
 
     # Required recipe fields
-    REQUIRED_RECIPE_FIELDS = {'name', 'platform', 'os', 'version', 'sections'}
+    REQUIRED_RECIPE_FIELDS = {"name", "platform", "os", "version", "sections"}
 
     def __init__(self, recipe_yml: str, options: argparse.Namespace):
         self.recipe_yml = pathlib.Path(recipe_yml)
@@ -534,31 +533,37 @@ class Builder(abc.ABC):
         # Check required fields
         missing_fields = self.REQUIRED_RECIPE_FIELDS - recipe.keys()
         if missing_fields:
-            self.log.error(f"Recipe {yml_file} is missing required fields: {missing_fields}")
+            self.log.error(
+                f"Recipe {yml_file} is missing required fields: {missing_fields}"
+            )
             raise ValueError(f"Missing required fields: {missing_fields}")
 
         # Validate sections exist and is a list
-        if not isinstance(recipe.get('sections'), list):
+        if not isinstance(recipe.get("sections"), list):
             self.log.error(f"Recipe {yml_file} 'sections' must be a list")
             raise ValueError("'sections' must be a list")
 
         # Validate each section
-        for idx, section in enumerate(recipe['sections']):
+        for idx, section in enumerate(recipe["sections"]):
             if not isinstance(section, dict):
                 self.log.error(f"Recipe {yml_file} section {idx} must be a dict")
                 raise ValueError(f"Section {idx} must be a dict")
 
             # Check section has required fields
-            if 'name' not in section:
+            if "name" not in section:
                 self.log.error(f"Recipe {yml_file} section {idx} missing 'name' field")
                 raise ValueError(f"Section {idx} missing 'name' field")
 
-            if 'type' not in section:
-                self.log.error(f"Recipe {yml_file} section '{section.get('name', idx)}' missing 'type' field")
-                raise ValueError(f"Section '{section.get('name', idx)}' missing 'type' field")
+            if "type" not in section:
+                self.log.error(
+                    f"Recipe {yml_file} section '{section.get('name', idx)}' missing 'type' field"
+                )
+                raise ValueError(
+                    f"Section '{section.get('name', idx)}' missing 'type' field"
+                )
 
             # Validate section type
-            section_type = section['type']
+            section_type = section["type"]
             if section_type not in self.VALID_SECTION_TYPES:
                 self.log.error(
                     f"Recipe {yml_file} section '{section['name']}' has invalid type '{section_type}'. "
@@ -567,13 +572,17 @@ class Builder(abc.ABC):
                 raise ValueError(f"Invalid section type '{section_type}'")
 
             # Check install field exists
-            if 'install' not in section:
-                self.log.error(f"Recipe {yml_file} section '{section['name']}' missing 'install' field")
+            if "install" not in section:
+                self.log.error(
+                    f"Recipe {yml_file} section '{section['name']}' missing 'install' field"
+                )
                 raise ValueError(f"Section '{section['name']}' missing 'install' field")
 
     def _load_recipe_from_file(self, name: Optional[str] = None) -> dict:
         """Returns default recipe or a named recipe."""
-        yml_file = self.recipe_yml if not name else self.recipe_yml.parent / f"{name}.yml"
+        yml_file = (
+            self.recipe_yml if not name else self.recipe_yml.parent / f"{name}.yml"
+        )
 
         try:
             with yml_file.open() as fopen:
@@ -605,9 +614,7 @@ class Builder(abc.ABC):
         - Special handling for 'inherits' field (not inherited)
         """
         # Configuration fields that can be inherited
-        INHERITABLE_FIELDS = {
-            'name', 'config', 'platform', 'os', 'version', 'release'
-        }
+        INHERITABLE_FIELDS = {"name", "config", "platform", "os", "version", "release"}
 
         # Start with parent config
         merged = {}
@@ -623,21 +630,21 @@ class Builder(abc.ABC):
                 merged[field] = child[field]
 
         # Handle sections inheritance (already exists, kept for clarity)
-        merged['sections'] = child.get('sections', []).copy()
-        child_section_names = [s['name'] for s in merged['sections']]
+        merged["sections"] = child.get("sections", []).copy()
+        child_section_names = [s["name"] for s in merged["sections"]]
 
-        if 'sections' in parent:
-            for parent_section in parent['sections']:
-                if parent_section['name'] not in child_section_names:
-                    merged['sections'].append(parent_section)
+        if "sections" in parent:
+            for parent_section in parent["sections"]:
+                if parent_section["name"] not in child_section_names:
+                    merged["sections"].append(parent_section)
 
         # Don't inherit the 'inherits' field itself
-        if 'inherits' in child:
-            merged['inherits'] = child['inherits']
+        if "inherits" in child:
+            merged["inherits"] = child["inherits"]
 
         return merged
 
-    def _get_recipe(self, recipe: Optional[dict[str,Any]] = None) -> dict:
+    def _get_recipe(self, recipe: Optional[dict[str, Any]] = None) -> dict:
         if not recipe:
             recipe = self._load_recipe_from_file()
 
@@ -702,7 +709,9 @@ class Builder(abc.ABC):
             # Note: shell=True is used here because generated scripts use shell syntax
             result = subprocess.run(shell_cmd, shell=True, capture_output=False)
             if result.returncode != 0:
-                self.log.error(f"Command failed with exit code {result.returncode}: {shell_cmd}")
+                self.log.error(
+                    f"Command failed with exit code {result.returncode}: {shell_cmd}"
+                )
 
     def write_file(self, data: str):
         """Write setup file with options."""
@@ -735,11 +744,15 @@ class Builder(abc.ABC):
 
         if self.options.format:
             try:
-                subprocess.run(['shfmt', '-w', str(path)], check=True, capture_output=True)
+                subprocess.run(
+                    ["shfmt", "-w", str(path)], check=True, capture_output=True
+                )
             except FileNotFoundError:
                 self.log.warning(f"shfmt not found in PATH, skipping format for {path}")
             except subprocess.CalledProcessError as e:
-                self.log.warning(f"Could not format {path}: {e.stderr.decode() if e.stderr else str(e)}")
+                self.log.warning(
+                    f"Could not format {path}: {e.stderr.decode() if e.stderr else str(e)}"
+                )
 
     def run_section(self, name: str):
         """Run individual section from recipe."""
@@ -760,7 +773,9 @@ class Builder(abc.ABC):
             self.log.info(f"Running section '{name}': {shellcmd}")
             result = subprocess.run(shellcmd, shell=True)
             if result.returncode != 0:
-                self.log.error(f"Section '{name}' failed with exit code {result.returncode}")
+                self.log.error(
+                    f"Section '{name}' failed with exit code {result.returncode}"
+                )
                 sys.exit(result.returncode)
         else:
             self.log.error("Only sections of type 'shell' can be run currently.")
@@ -783,18 +798,24 @@ class Builder(abc.ABC):
             self.log.error(f"Error rendering template {self.template}: {e}")
             raise
         if not self.prefix:
-            self.prefix = "_".join([
-                self.recipe['platform'],
-                self.recipe['os'],
-                self.recipe['version'],
-                self.recipe['name'],
-            ])
+            self.prefix = "_".join(
+                [
+                    self.recipe["platform"],
+                    self.recipe["os"],
+                    self.recipe["version"],
+                    self.recipe["name"],
+                ]
+            )
             # self.prefix = "_".join(self.recipe["platform"].split(":"))
 
         if self.options.dry_run:
-            self.log.info(f"[DRY-RUN] Would write {len(rendered)} bytes to {self.setup / self.target}")
-            self.log.info(f"[DRY-RUN] Recipe contains {len(self.recipe['sections'])} sections")
-            for section in self.recipe['sections']:
+            self.log.info(
+                f"[DRY-RUN] Would write {len(rendered)} bytes to {self.setup / self.target}"
+            )
+            self.log.info(
+                f"[DRY-RUN] Recipe contains {len(self.recipe['sections'])} sections"
+            )
+            for section in self.recipe["sections"]:
                 self.log.info(f"[DRY-RUN]   - {section['name']} ({section['type']})")
         else:
             self.write_file(rendered)
@@ -802,31 +823,31 @@ class Builder(abc.ABC):
     def generate_lockfile(self) -> str:
         """Generate lockfile with pinned package versions."""
         lockfile = {
-            'generated_at': datetime.now().isoformat(),
-            'recipe': {
-                'name': self.recipe.get('name'),
-                'platform': self.recipe.get('platform'),
-                'os': self.recipe.get('os'),
-                'version': self.recipe.get('version'),
-                'release': self.recipe.get('release'),
+            "generated_at": datetime.now().isoformat(),
+            "recipe": {
+                "name": self.recipe.get("name"),
+                "platform": self.recipe.get("platform"),
+                "os": self.recipe.get("os"),
+                "version": self.recipe.get("version"),
+                "release": self.recipe.get("release"),
             },
-            'packages': {}
+            "packages": {},
         }
 
         # Map section types to package manager formats
         type_to_format = {
-            'python_packages': 'python',
-            'debian_packages': 'debian',
-            'ruby_packages': 'ruby',
-            'rust_packages': 'rust',
-            'homebrew_packages': 'homebrew',
-            'winget_packages': 'winget',
-            'chocolatey_packages': 'chocolatey',
+            "python_packages": "python",
+            "debian_packages": "debian",
+            "ruby_packages": "ruby",
+            "rust_packages": "rust",
+            "homebrew_packages": "homebrew",
+            "winget_packages": "winget",
+            "chocolatey_packages": "chocolatey",
         }
 
-        for section in self.recipe.get('sections', []):
-            section_type = section.get('type')
-            section_name = section.get('name')
+        for section in self.recipe.get("sections", []):
+            section_type = section.get("type")
+            section_name = section.get("name")
 
             if section_type not in type_to_format:
                 continue
@@ -834,15 +855,15 @@ class Builder(abc.ABC):
             pkg_format = type_to_format[section_type]
             packages_list = []
 
-            if isinstance(section.get('install'), list):
-                for pkg_str in section['install']:
+            if isinstance(section.get("install"), list):
+                for pkg_str in section["install"]:
                     pkg_spec = PackageSpec(pkg_str, pkg_format)
                     packages_list.append(pkg_spec.to_lockfile_entry())
 
             if packages_list:
-                lockfile['packages'][section_name] = {
-                    'type': section_type,
-                    'packages': packages_list
+                lockfile["packages"][section_name] = {
+                    "type": section_type,
+                    "packages": packages_list,
                 }
 
         return json.dumps(lockfile, indent=2)
@@ -915,22 +936,24 @@ def commandline():
     parser = argparse.ArgumentParser(description="Install Packages")
     option = parser.add_argument
 
+    # fmt: off
     option("recipe", nargs="*", help="recipes to install")
-    option("-d", "--docker", action="store_true", help="generate dockerfile")
     option("-b", "--shell", action="store_true", help="generate shell file (Linux/macOS)")
-    option("-p", "--powershell", action="store_true", help="generate PowerShell file (Windows)")
-    option("-y", "--python", action="store_true", help="generate Python setup script (cross-platform)")
     option("-c", "--conditional", action="store_true", help="add conditional steps")
+    option("-d", "--docker", action="store_true", help="generate dockerfile")
+    option("-dr", "--dry-run", action="store_true", help="show commands without executing")
+    option("-e", "--executable", default=True, action="store_true", help="make setup file executable")
     option("-f", "--format", action="store_true", help="format using shfmt")
+    option("-p", "--python", action="store_true", help="generate Python setup script (cross-platform)")
+    option("-ps", "--powershell", action="store_true", help="generate PowerShell file (Windows)")
     option("-r", "--run", action="store_true", help="run generated file")
     option("-s", "--strip", default=False, action="store_true", help="strip empty lines")
-    option("-e", "--executable", default=True, action="store_true", help="make setup file executable")
-    option("--section", type=str, help="run section")
-    option("--debug", action="store_true", help="enable debug logging")
-    option("-n", "--dry-run", action="store_true", help="show commands without executing")
-    option("--lockfile", action="store_true", help="generate lockfile with pinned versions")
-    option("--validate", action="store_true", help="validate config/ and default/ directories")
     option("-v", "--verbose", action="store_true", help="verbose output (for --validate)")
+    option("--debug", action="store_true", help="enable debug logging")
+    option("--lockfile", action="store_true", help="generate lockfile with pinned versions")
+    option("--section", type=str, help="run section")
+    option("--validate", action="store_true", help="validate config/ and default/ directories")
+    # fmt: on
 
     args = parser.parse_args()
 
@@ -949,7 +972,9 @@ def commandline():
 
     # Check if recipes were provided for non-validate operations
     if not args.recipe:
-        parser.error("the following arguments are required: recipe (unless using --validate)")
+        parser.error(
+            "the following arguments are required: recipe (unless using --validate)"
+        )
 
     for recipe in args.recipe:
         if args.section:
@@ -989,6 +1014,7 @@ def commandline():
 
             if args.run:
                 builder.run()
+
 
 if __name__ == "__main__":
     commandline()

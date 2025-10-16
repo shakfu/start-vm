@@ -46,19 +46,30 @@ CONFIG_FILES = [
 # Section definitions
 SECTIONS = [
 {% for section in sections %}    {
-        "name": "{{section.name}}",
-        "type": "{{section.type}}",
-{% if section.pre_install %}        "pre_install": """{{section.pre_install}}""",
-{% endif %}{% if section.type == "shell" %}        "install": """{{section.install}}""",
-{% else %}        "install": [
-{% for package in section.install %}            "{{package}}",
-{% endfor %}        ],
-{% endif %}{% if section.purge %}        "purge": [
-{% for package in section.purge %}            "{{package}}",
-{% endfor %}        ],
-{% endif %}{% if section.post_install %}        "post_install": """{{section.post_install}}""",
-{% endif %}    },
-{% endfor %}]
+    "name": "{{section.name}}",
+    "type": "{{section.type}}",
+{% if section.pre_install %}
+    "pre_install": """{{section.pre_install}}""",
+{% endif %}{% if section.type == "shell" %}
+    "install": """{{section.install}}""",
+{% else %}
+    "install": [
+{% for package in section.install %}
+        "{{package}}",
+{% endfor %}
+    ],
+{% endif %}{% if section.purge %} 
+    "purge": [
+{% for package in section.purge %}
+        "{{package}}",
+{% endfor %}
+    ],
+{% endif %}{% if section.post_install %}
+    "post_install": """{{section.post_install}}""",
+{% endif %}
+    },
+{% endfor %}
+]
 
 # Color output
 class Colors:
