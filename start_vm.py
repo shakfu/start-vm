@@ -528,15 +528,22 @@ class Builder(abc.ABC):
     def __repr__(self):
         return "<{} recipe='{}'>".format(self.__class__.__name__, self.recipe_yml)
 
-    def _validate_recipe(self, recipe: dict, yml_file: pathlib.Path) -> None:
-        """Validate recipe structure and required fields."""
-        # Check required fields
-        missing_fields = self.REQUIRED_RECIPE_FIELDS - recipe.keys()
-        if missing_fields:
-            self.log.error(
-                f"Recipe {yml_file} is missing required fields: {missing_fields}"
-            )
-            raise ValueError(f"Missing required fields: {missing_fields}")
+    def _validate_recipe(self, recipe: dict, yml_file: pathlib.Path, skip_required: bool = False) -> None:
+        """Validate recipe structure and required fields.
+
+        Args:
+            recipe: The recipe dictionary to validate
+            yml_file: Path to the YAML file for error messages
+            skip_required: If True, skip validation of required fields (for child recipes with inheritance)
+        """
+        # Check required fields (skip if this recipe has inheritance)
+        if not skip_required:
+            missing_fields = self.REQUIRED_RECIPE_FIELDS - recipe.keys()
+            if missing_fields:
+                self.log.error(
+                    f"Recipe {yml_file} is missing required fields: {missing_fields}"
+                )
+                raise ValueError(f"Missing required fields: {missing_fields}")
 
         # Validate sections exist and is a list
         if not isinstance(recipe.get("sections"), list):
@@ -599,7 +606,10 @@ class Builder(abc.ABC):
             raise
 
         # Validate recipe structure
-        self._validate_recipe(recipe, yml_file)
+        # Skip required field validation if recipe has inheritance
+        # (required fields will be validated after inheritance is resolved)
+        skip_required = "inherits" in recipe
+        self._validate_recipe(recipe, yml_file, skip_required=skip_required)
 
         return recipe
 
@@ -655,8 +665,9 @@ class Builder(abc.ABC):
             else:
                 parents = recipe["inherits"]
 
-            # Process parents in order (left to right)
-            # Later parents override earlier ones
+            # Build up merged parent config from all parents
+            # Process parents in order (left to right), later parents override earlier ones
+            merged_parent = {}
             for parent_name in parents:
                 parent_recipe = self._load_recipe_from_file(parent_name)
 
@@ -664,10 +675,17 @@ class Builder(abc.ABC):
                 if "inherits" in parent_recipe:
                     parent_recipe = self._get_recipe(parent_recipe)
 
-                # Merge parent config into current recipe
-                recipe = self._merge_configs(parent_recipe, recipe)
+                # Merge this parent into the accumulated parent config
+                # Treat parent_recipe as child so it overrides previous parents
+                if merged_parent:
+                    merged_parent = self._merge_configs(merged_parent, parent_recipe)
+                else:
+                    merged_parent = parent_recipe
 
                 self.log.debug(f"Inherited configuration from parent '{parent_name}'")
+
+            # Finally merge the accumulated parent config with the child
+            recipe = self._merge_configs(merged_parent, recipe)
 
         # Handle default files
         default_path = pathlib.Path("default")
@@ -687,6 +705,10 @@ class Builder(abc.ABC):
                 recipe["configs"] = []
         else:
             recipe["configs"] = []
+
+        # Validate the final merged recipe (after inheritance is complete)
+        # Use a dummy path since we've already merged inheritance
+        self._validate_recipe(recipe, pathlib.Path(self.recipe_yml), skip_required=False)
 
         recipe.update(vars(self.options))
         return recipe
@@ -798,7 +820,7 @@ class Builder(abc.ABC):
             self.log.error(f"Error rendering template {self.template}: {e}")
             raise
         if not self.prefix:
-            self.prefix = "_".join(
+            self.prefix = "-".join(
                 [
                     self.recipe["platform"],
                     self.recipe["os"],
@@ -806,7 +828,7 @@ class Builder(abc.ABC):
                     self.recipe["name"],
                 ]
             )
-            # self.prefix = "_".join(self.recipe["platform"].split(":"))
+            # self.prefix = "-".join(self.recipe["platform"].split(":"))
 
         if self.options.dry_run:
             self.log.info(
@@ -921,10 +943,55 @@ class PowerShellBuilder(Builder):
 
 
 class PythonBuilder(Builder):
-    """Builds a Python script for cross-platform package installation."""
+    """Builds a Python script with data-driven architecture."""
 
     suffix = ".py"
     template = "setup.py"
+
+    def build(self):
+        """Override build to construct data structures in Python."""
+        import pprint
+
+        # Construct FILE_SETS data structure
+        file_sets = {
+            'defaults': self.recipe.get('defaults', []),
+            'configs': self.recipe.get('configs', []),
+        }
+
+        # Construct SECTIONS data structure
+        sections = []
+        for section in self.recipe.get('sections', []):
+            sec_dict = {
+                'name': section['name'],
+                'type': section['type'],
+            }
+
+            if section.get('pre_install'):
+                sec_dict['pre_install'] = section['pre_install']
+
+            if section['type'] in ('shell', 'powershell'):
+                sec_dict['install'] = section.get('install', '')
+            else:
+                sec_dict['install'] = section.get('install', [])
+
+            if section.get('purge'):
+                sec_dict['purge'] = section['purge']
+
+            if section.get('post_install'):
+                sec_dict['post_install'] = section['post_install']
+
+            sections.append(sec_dict)
+
+        # Pretty print the data structures
+        file_sets_str = pprint.pformat(file_sets, indent=4, width=80)
+        sections_str = pprint.pformat(sections, indent=4, width=80)
+
+        # Add pretty-printed data to recipe context
+        self.recipe['file_sets_data'] = file_sets_str
+        self.recipe['sections_data'] = sections_str
+
+        # Call parent build method
+        super().build()
 
     def run(self):
         path = self.setup.joinpath(self.target)

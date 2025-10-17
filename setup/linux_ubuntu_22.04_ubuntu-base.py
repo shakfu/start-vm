@@ -48,8 +48,7 @@ DEFAULT_FILES = [
 ]
 
 # Config files to install
-CONFIG_FILES = [
-]
+CONFIG_FILES = []
 
 # Section definitions
 SECTIONS = [
@@ -90,16 +89,17 @@ SECTIONS = [
     },
 ]
 
+
 # Color output
 class Colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
 
 
 def print_header(msg: str) -> None:
@@ -129,8 +129,13 @@ def print_error(msg: str) -> None:
     print(f"{Colors.FAIL}[ERROR]{Colors.ENDC} {msg}")
 
 
-def run_command(cmd: List[str], description: str, dry_run: bool = False,
-                check: bool = True, shell: bool = False) -> Optional[int]:
+def run_command(
+    cmd: List[str],
+    description: str,
+    dry_run: bool = False,
+    check: bool = True,
+    shell: bool = False,
+) -> Optional[int]:
     """
     Execute a command with error handling.
 
@@ -145,15 +150,16 @@ def run_command(cmd: List[str], description: str, dry_run: bool = False,
         Exit code or None if dry_run
     """
     if dry_run:
-        cmd_str = cmd if shell else ' '.join(cmd)
+        cmd_str = cmd if shell else " ".join(cmd)
         print_info(f"[DRY-RUN] Would execute: {cmd_str}")
         return None
 
     print_info(f"{description}...")
     try:
         if shell:
-            result = subprocess.run(cmd, shell=True, check=check,
-                                  capture_output=False, text=True)
+            result = subprocess.run(
+                cmd, shell=True, check=check, capture_output=False, text=True
+            )
         else:
             result = subprocess.run(cmd, check=check, capture_output=False, text=True)
 
@@ -172,8 +178,9 @@ def run_command(cmd: List[str], description: str, dry_run: bool = False,
         return 127
 
 
-def backup_file_or_dir(path: Path, name: str, dry_run: bool = False,
-                        verbose: bool = False) -> None:
+def backup_file_or_dir(
+    path: Path, name: str, dry_run: bool = False, verbose: bool = False
+) -> None:
     """Backup existing file or directory before overwriting."""
     global BACKUP_DIR
 
@@ -208,8 +215,14 @@ def backup_file_or_dir(path: Path, name: str, dry_run: bool = False,
         print_warning(f"Failed to backup {name}: {e}")
 
 
-def copy_file_or_dir(src: Path, dst: Path, name: str, dry_run: bool = False,
-                     verbose: bool = False, backup: bool = True) -> None:
+def copy_file_or_dir(
+    src: Path,
+    dst: Path,
+    name: str,
+    dry_run: bool = False,
+    verbose: bool = False,
+    backup: bool = True,
+) -> None:
     """Copy a file or directory with error handling."""
     if dry_run:
         if dst.exists() and backup:
@@ -241,8 +254,9 @@ def copy_file_or_dir(src: Path, dst: Path, name: str, dry_run: bool = False,
         print_error(f"Failed to copy {name}: {e}")
 
 
-def remove_file_or_dir(path: Path, name: str, dry_run: bool = False,
-                       verbose: bool = False) -> None:
+def remove_file_or_dir(
+    path: Path, name: str, dry_run: bool = False, verbose: bool = False
+) -> None:
     """Remove a file or directory with error handling."""
     if dry_run:
         print_info(f"[DRY-RUN] Would remove {path}")
@@ -264,8 +278,9 @@ def remove_file_or_dir(path: Path, name: str, dry_run: bool = False,
         print_error(f"Failed to remove {name}: {e}")
 
 
-def install_default_files(dry_run: bool = False, verbose: bool = False,
-                          backup: bool = True) -> None:
+def install_default_files(
+    dry_run: bool = False, verbose: bool = False, backup: bool = True
+) -> None:
     """Install default dotfiles to home directory."""
     print_header("Installing default dotfiles")
 
@@ -279,8 +294,9 @@ def install_default_files(dry_run: bool = False, verbose: bool = False,
         copy_file_or_dir(src, dst, entry, dry_run, verbose, backup)
 
 
-def install_config_files(dry_run: bool = False, verbose: bool = False,
-                         backup: bool = True) -> None:
+def install_config_files(
+    dry_run: bool = False, verbose: bool = False, backup: bool = True
+) -> None:
     """Install config files to .config directory."""
     print_header("Installing .config folders")
 
@@ -319,113 +335,151 @@ def uninstall_config_files(dry_run: bool = False, verbose: bool = False) -> None
 def strip_version_spec(package: str) -> str:
     """Strip version specifier from package name."""
     # Handle different package manager syntaxes
-    for sep in ['==', '>=', '<=', '>', '<', '~=', '!=', '=', ':', '@']:
+    for sep in ["==", ">=", "<=", ">", "<", "~=", "!=", "=", ":", "@"]:
         if sep in package:
             return package.split(sep)[0]
     return package
 
 
-def install_section(section: dict, dry_run: bool = False, verbose: bool = False) -> None:
+def install_section(
+    section: dict, dry_run: bool = False, verbose: bool = False
+) -> None:
     """Install a section based on its type."""
     print_header(f"Section: {section['name']}")
 
     # Pre-install scripts
-    if section.get('pre_install'):
+    if section.get("pre_install"):
         print_info("Running pre-install scripts...")
-        run_command(section['pre_install'], "Pre-install", dry_run=dry_run, shell=True)
+        run_command(section["pre_install"], "Pre-install", dry_run=dry_run, shell=True)
 
-    section_type = section['type']
-    install_list = section.get('install', [])
+    section_type = section["type"]
+    install_list = section.get("install", [])
 
     # Install based on section type
-    if section_type == 'debian_packages':
+    if section_type == "debian_packages":
         if install_list:
             cmd = ["sudo", "apt-get", "install", "-y"] + install_list
-            run_command(cmd, f"Installing {section['name']} debian packages", dry_run=dry_run)
+            run_command(
+                cmd, f"Installing {section['name']} debian packages", dry_run=dry_run
+            )
 
-    elif section_type == 'python_packages':
+    elif section_type == "python_packages":
         if install_list:
             cmd = [sys.executable, "-m", "pip", "install"] + install_list
-            run_command(cmd, f"Installing {section['name']} python packages", dry_run=dry_run)
+            run_command(
+                cmd, f"Installing {section['name']} python packages", dry_run=dry_run
+            )
 
-    elif section_type == 'ruby_packages':
+    elif section_type == "ruby_packages":
         for package in install_list:
-            run_command(["gem", "install", package],
-                       f"Installing {package}", dry_run=dry_run)
+            run_command(
+                ["gem", "install", package], f"Installing {package}", dry_run=dry_run
+            )
 
-    elif section_type == 'rust_packages':
+    elif section_type == "rust_packages":
         for package in install_list:
-            run_command(["cargo", "install", package],
-                       f"Installing {package}", dry_run=dry_run)
+            run_command(
+                ["cargo", "install", package], f"Installing {package}", dry_run=dry_run
+            )
 
-    elif section_type == 'homebrew_packages':
+    elif section_type == "homebrew_packages":
         if install_list:
-            run_command(["brew", "install"] + install_list,
-                       f"Installing {section['name']} homebrew packages", dry_run=dry_run)
+            run_command(
+                ["brew", "install"] + install_list,
+                f"Installing {section['name']} homebrew packages",
+                dry_run=dry_run,
+            )
 
-    elif section_type == 'shell':
+    elif section_type == "shell":
         print_info("Executing shell commands...")
-        run_command(install_list, section['name'], dry_run=dry_run, shell=True)
+        run_command(install_list, section["name"], dry_run=dry_run, shell=True)
 
     # Purge packages
-    if section.get('purge') and section_type == 'debian_packages':
+    if section.get("purge") and section_type == "debian_packages":
         print_info("Purging unwanted packages...")
-        purge_pkgs = section['purge']
-        run_command(["sudo", "apt-get", "purge", "-y"] + purge_pkgs,
-                   f"Purging {section['name']} packages", dry_run=dry_run)
+        purge_pkgs = section["purge"]
+        run_command(
+            ["sudo", "apt-get", "purge", "-y"] + purge_pkgs,
+            f"Purging {section['name']} packages",
+            dry_run=dry_run,
+        )
 
     # Post-install scripts
-    if section.get('post_install'):
+    if section.get("post_install"):
         print_info("Running post-install scripts...")
-        run_command(section['post_install'], "Post-install", dry_run=dry_run, shell=True)
+        run_command(
+            section["post_install"], "Post-install", dry_run=dry_run, shell=True
+        )
 
 
-def uninstall_section(section: dict, dry_run: bool = False, verbose: bool = False) -> None:
+def uninstall_section(
+    section: dict, dry_run: bool = False, verbose: bool = False
+) -> None:
     """Uninstall a section based on its type."""
     print_header(f"Uninstalling: {section['name']}")
 
-    section_type = section['type']
-    install_list = section.get('install', [])
+    section_type = section["type"]
+    install_list = section.get("install", [])
 
-    if section_type == 'debian_packages':
+    if section_type == "debian_packages":
         if install_list:
             packages = [strip_version_spec(pkg) for pkg in install_list]
             cmd = ["sudo", "apt-get", "remove", "-y"] + packages
-            run_command(cmd, f"Uninstalling {section['name']} debian packages",
-                       dry_run=dry_run, check=False)
+            run_command(
+                cmd,
+                f"Uninstalling {section['name']} debian packages",
+                dry_run=dry_run,
+                check=False,
+            )
 
-    elif section_type == 'python_packages':
+    elif section_type == "python_packages":
         if install_list:
             packages = [strip_version_spec(pkg) for pkg in install_list]
             cmd = [sys.executable, "-m", "pip", "uninstall", "-y"] + packages
-            run_command(cmd, f"Uninstalling {section['name']} python packages",
-                       dry_run=dry_run, check=False)
+            run_command(
+                cmd,
+                f"Uninstalling {section['name']} python packages",
+                dry_run=dry_run,
+                check=False,
+            )
 
-    elif section_type == 'ruby_packages':
+    elif section_type == "ruby_packages":
         for package in install_list:
             pkg_name = strip_version_spec(package)
-            run_command(["gem", "uninstall", "-x", pkg_name],
-                       f"Uninstalling {pkg_name}", dry_run=dry_run, check=False)
+            run_command(
+                ["gem", "uninstall", "-x", pkg_name],
+                f"Uninstalling {pkg_name}",
+                dry_run=dry_run,
+                check=False,
+            )
 
-    elif section_type == 'rust_packages':
+    elif section_type == "rust_packages":
         for package in install_list:
             pkg_name = strip_version_spec(package)
-            run_command(["cargo", "uninstall", pkg_name],
-                       f"Uninstalling {pkg_name}", dry_run=dry_run, check=False)
+            run_command(
+                ["cargo", "uninstall", pkg_name],
+                f"Uninstalling {pkg_name}",
+                dry_run=dry_run,
+                check=False,
+            )
 
-    elif section_type == 'homebrew_packages':
+    elif section_type == "homebrew_packages":
         if install_list:
             packages = [strip_version_spec(pkg) for pkg in install_list]
-            run_command(["brew", "uninstall"] + packages,
-                       f"Uninstalling {section['name']} homebrew packages",
-                       dry_run=dry_run, check=False)
+            run_command(
+                ["brew", "uninstall"] + packages,
+                f"Uninstalling {section['name']} homebrew packages",
+                dry_run=dry_run,
+                check=False,
+            )
 
-    elif section_type == 'shell':
+    elif section_type == "shell":
         print_warning("Shell sections cannot be automatically uninstalled")
 
 
-def install_all(dry_run: bool = False, verbose: bool = False,
-                backup: bool = True) -> None:
+def install_all(
+    dry_run: bool = False, verbose: bool = False, backup: bool = True
+) -> None:
     """Run full installation."""
     print_header(f"Installing: {RECIPE_NAME}")
     print_info(f"Platform: {PLATFORM}")
@@ -433,9 +487,13 @@ def install_all(dry_run: bool = False, verbose: bool = False,
     print()
 
     if backup:
-        print_info("Backup enabled: existing files will be backed up before overwriting")
+        print_info(
+            "Backup enabled: existing files will be backed up before overwriting"
+        )
     else:
-        print_warning("Backup disabled: existing files will be overwritten without backup")
+        print_warning(
+            "Backup disabled: existing files will be overwritten without backup"
+        )
 
     # Install default files
     install_default_files(dry_run, verbose, backup)
@@ -490,67 +548,66 @@ Examples:
 
 Note: By default, existing dotfiles and config files are backed up to
       ~/.dotfiles_backup_<timestamp>/ before being overwritten.
-        """
+        """,
     )
 
     parser.add_argument(
-        'action',
-        choices=['install', 'uninstall'],
-        help='Action to perform'
+        "action", choices=["install", "uninstall"], help="Action to perform"
     )
     parser.add_argument(
-        '-n', '--dry-run',
-        action='store_true',
-        help='Show what would be done without executing'
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Show what would be done without executing",
     )
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose output'
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
     parser.add_argument(
-        '--no-backup',
-        action='store_true',
-        help='Skip backing up existing files (default: backup enabled)'
+        "--no-backup",
+        action="store_true",
+        help="Skip backing up existing files (default: backup enabled)",
     )
     parser.add_argument(
-        '--version',
-        action='version',
-        version=f'%(prog)s for {RECIPE_NAME} ({PLATFORM}/{OS_NAME})'
+        "--version",
+        action="version",
+        version=f"%(prog)s for {RECIPE_NAME} ({PLATFORM}/{OS_NAME})",
     )
 
     args = parser.parse_args()
 
     # Check platform compatibility
     current_platform = platform.system().lower()
-    if current_platform == 'darwin':
-        current_platform = 'darwin'
-    elif current_platform == 'linux':
-        current_platform = 'linux'
-    elif current_platform == 'windows':
-        current_platform = 'windows'
+    if current_platform == "darwin":
+        current_platform = "darwin"
+    elif current_platform == "linux":
+        current_platform = "linux"
+    elif current_platform == "windows":
+        current_platform = "windows"
 
     if args.verbose:
         print_info(f"Current platform: {current_platform}")
         print_info(f"Target platform: {PLATFORM}")
 
     if current_platform != PLATFORM and not args.dry_run:
-        print_warning(f"Platform mismatch: running on {current_platform}, "
-                     f"but recipe is for {PLATFORM}")
+        print_warning(
+            f"Platform mismatch: running on {current_platform}, "
+            f"but recipe is for {PLATFORM}"
+        )
         response = input("Continue anyway? [y/N]: ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print_info("Aborted")
             sys.exit(0)
 
     # Execute requested action
     try:
-        if args.action == 'install':
+        if args.action == "install":
             install_all(args.dry_run, args.verbose, backup=not args.no_backup)
-        elif args.action == 'uninstall':
+        elif args.action == "uninstall":
             if not args.dry_run:
                 print_warning("This will remove installed packages and files!")
                 response = input("Are you sure? [y/N]: ")
-                if response.lower() != 'y':
+                if response.lower() != "y":
                     print_info("Aborted")
                     sys.exit(0)
             uninstall_all(args.dry_run, args.verbose)
@@ -562,9 +619,10 @@ Note: By default, existing dotfiles and config files are backed up to
         print_error(f"Unexpected error: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

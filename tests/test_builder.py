@@ -255,7 +255,9 @@ class TestBuilderTemplateRendering:
 
                 mock_write.assert_called_once()
                 rendered = mock_write.call_args[0][0]
-                assert "20.04" in rendered
+                # Check that the template rendered section content correctly
+                assert "section: core" in rendered
+                assert "apt-get" in rendered
 
 
 class TestBuilderDryRun:
@@ -278,6 +280,9 @@ class TestBuilderDryRun:
 
     def test_dry_run_logging(self, mock_options, temp_recipe_dir, caplog):
         """Test that dry-run logs what would be done."""
+        import logging
+        caplog.set_level(logging.INFO, logger="ShellBuilder")
+
         tmp_path, recipe_path = temp_recipe_dir
         mock_options.dry_run = True
 
@@ -344,13 +349,22 @@ class TestBuilderConfigHandling:
 
     def test_missing_default_directory(self, mock_options, temp_recipe_dir, caplog):
         """Test handling of missing default directory."""
+        import logging
+        import os
+        caplog.set_level(logging.WARNING, logger="ShellBuilder")
+
         tmp_path, recipe_path = temp_recipe_dir
 
         # Remove default directory
         (tmp_path / "default").rmdir()
 
-        with mock.patch("pathlib.Path.cwd", return_value=tmp_path):
+        # Change to tmp_path directory so pathlib.Path("default") resolves correctly
+        orig_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
             builder = ShellBuilder(str(recipe_path), mock_options)
+        finally:
+            os.chdir(orig_cwd)
 
         assert "Default directory not found" in caplog.text
         assert builder.recipe["defaults"] == []
@@ -801,10 +815,10 @@ class TestPackageVersionPinning:
             with mock.patch("os.listdir", return_value=[]):
                 builder = ShellBuilder(str(recipe_path), mock_options)
                 builder.setup = setup_dir
-                builder.prefix = "linux_ubuntu_22.04_test"
+                builder.prefix = "linux-ubuntu-22.04-test"
                 builder.write_lockfile()
 
-        lockfile_path = setup_dir / "linux_ubuntu_22.04_test.lock.json"
+        lockfile_path = setup_dir / "linux-ubuntu-22.04-test.lock.json"
         assert lockfile_path.exists()
 
         with lockfile_path.open() as f:
@@ -861,7 +875,7 @@ if __name__ == '__main__':
         generated_files = list(setup_dir.glob("*.py"))
         assert len(generated_files) == 1
         assert generated_files[0].suffix == ".py"
-        assert "linux_ubuntu_20.04_test" in generated_files[0].name
+        assert "linux-ubuntu-20.04-test" in generated_files[0].name
 
     def test_python_builder_template_rendering(self, mock_options, temp_recipe_dir):
         """Test that PythonBuilder correctly renders template variables."""
@@ -887,12 +901,12 @@ OS_RELEASE = "{{release}}"
         generated_file = list(setup_dir.glob("*.py"))[0]
         content = generated_file.read_text()
 
-        # Verify template variables were rendered correctly
-        assert 'RECIPE_NAME = "test"' in content
-        assert 'PLATFORM = "linux"' in content
-        assert 'OS_NAME = "ubuntu"' in content
-        assert 'OS_VERSION = "20.04"' in content
-        assert 'OS_RELEASE = "focal"' in content
+        # Verify template variables were rendered correctly (new data-driven structure)
+        assert "'name': \"test\"" in content
+        assert "'platform': \"linux\"" in content
+        assert "'os': \"ubuntu\"" in content
+        assert "'version': \"20.04\"" in content
+        assert "'release': \"focal\"" in content
 
     def test_python_builder_with_sections(self, mock_options, tmp_path):
         """Test PythonBuilder with various section types using data structures."""
@@ -965,18 +979,19 @@ def install_section(section, dry_run=False):
         generated_file = list(setup_dir.glob("*.py"))[0]
         content = generated_file.read_text()
 
-        # Verify SECTIONS data structure contains all sections
-        assert "SECTIONS = [" in content
-        assert '"debian-pkgs"' in content
-        assert '"python-pkgs"' in content
-        assert '"shell-cmds"' in content
-        assert '"vim"' in content
-        assert '"git"' in content
-        assert '"pytest"' in content
-        assert '"requests"' in content
+        # Verify SECTIONS data structure contains all sections (new Python pprint format)
+        assert "SECTIONS =" in content
+        assert "debian-pkgs" in content
+        assert "python-pkgs" in content
+        assert "shell-cmds" in content
+        assert "vim" in content
+        assert "git" in content
+        assert "pytest" in content
+        assert "requests" in content
         assert "echo 'test'" in content
-        # Verify function-based approach (not repetitive code)
-        assert "def install_section" in content
+        # Verify data-driven execution approach with Executor class
+        assert "class Executor" in content
+        assert "def exec_section" in content
 
     def test_python_builder_valid_python_syntax(self, mock_options, tmp_path):
         """Test that generated Python script has valid syntax."""
